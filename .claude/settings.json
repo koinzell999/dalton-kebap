@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(cd \"C:\\Users\\Nawar\\Documents\\Dalton Kebap\"; npm run build *)",
+      "PowerShell(cd \"C:\\Users\\Nawar\\Documents\\Dalton Kebap\"; firebase deploy *)",
+      "PowerShell(cd \"C:\\Users\\Nawar\\Documents\\Dalton Kebap\"; node seed.js *)",
+      "PowerShell(cd \"C:\\Users\\Nawar\\Documents\\Dalton Kebap\"; node upload-images.js *)",
+      "PowerShell(Get-ChildItem *)"
+    ]
+  }
+}

@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mutfak — Dalton's Kebap</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #0f0a06;
+      --card:   #1c0e07;
+      --border: #3a1e0e;
+      --orange: #f59e0b;
+      --yellow: #fcd34d;
+      --text:   #fef3e2;
+      --muted:  #c4956a;
+      --green:  #22c55e;
+      --red:    #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Open Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ─────────────────────────────── */
+
+    .header {
+      background: #140803;
+      border-bottom: 2px solid var(--orange);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .header-brand {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--orange);
+      letter-spacing: 2px;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+
+    .status-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #555;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .status-dot.connected    { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.connecting   { background: var(--yellow); animation: blink 1s ease-in-out infinite; }
+    .status-dot.disconnected { background: var(--red); }
+
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .count-badge {
+      background: var(--orange);
+      color: #000;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      white-space: nowrap;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid var(--muted);
+      color: var(--muted);
+      padding: 0.4rem 0.85rem;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: 'Open Sans', sans-serif;
+      transition: border-color 0.15s, color 0.15s;
+      min-height: 36px;
+      white-space: nowrap;
+    }
+    .btn-outline:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    /* ── MAIN ─────────────────────────────── */
+
+    .main { padding: 1.25rem; }
+
+    .empty {
+      text-align: center;
+      padding: 5rem 1rem;
+    }
+    .empty-icon { font-size: 3.5rem; margin-bottom: 1rem; }
+    .empty p { color: var(--muted); font-size: 1rem; }
+
+    /* ── ORDERS GRID ─────────────────────────────── */
+
+    .orders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 1rem;
+      align-items: start;
+    }
+
+    /* ── ORDER CARD ─────────────────────────────── */
+
+    .order-card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .order-card.new-order {
+      border-color: var(--orange);
+      box-shadow: 0 0 20px rgba(245,158,11,.35);
+      animation: slideIn 0.3s ease, pulse 1.8s ease-in-out 4;
+    }
+
+    @keyframes pulse {
+      0%,100% { box-shadow: 0 0 20px rgba(245,158,11,.35); }
+      50%      { box-shadow: 0 0 36px rgba(245,158,11,.7); }
+    }
+
+    .card-head {
+      background: rgba(245,158,11,.1);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .table-num {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.45rem;
+      font-weight: 700;
+      color: var(--yellow);
+      letter-spacing: 1px;
+    }
+
+    .time-col { text-align: right; line-height: 1.2; }
+    .elapsed  { display: block; font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700; color: var(--orange); }
+    .ago      { font-size: 0.72rem; color: var(--muted); }
+
+    .card-items {
+      padding: 0.75rem 1rem;
+      flex: 1;
+    }
+
+    .item-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 0.25rem 0;
+      font-size: 0.9rem;
+      border-bottom: 1px solid rgba(255,255,255,.05);
+    }
+    .item-row:last-child { border-bottom: none; }
+    .item-name { flex: 1; color: var(--text); }
+    .item-qty  { color: var(--orange); font-weight: 700; font-size: 0.85rem; margin-left: 0.5rem; white-space: nowrap; }
+
+    .card-foot {
+      padding: 0.85rem 1rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .total {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--yellow);
+    }
+
+    .btn-serve {
+      background: var(--green);
+      color: #fff;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.5px;
+      transition: background 0.15s, transform 0.1s;
+      min-height: 44px;
+      white-space: nowrap;
+    }
+    .btn-serve:hover    { background: #16a34a; }
+    .btn-serve:active   { transform: scale(0.97); }
+    .btn-serve:disabled { background: #3a3a3a; cursor: not-allowed; color: #888; }
+
+    .fade-out {
+      animation: fadeOut 0.35s ease forwards;
+      pointer-events: none;
+    }
+    @keyframes fadeOut { to { opacity: 0; transform: scale(0.96); } }
+  </style>
+</head>
+<body>
+
+<div id="app">
+  <header class="header">
+    <div class="header-brand">🔥 MUTFAK PANELİ</div>
+    <div class="header-right">
+      <div class="status-row">
+        <span id="status-dot" class="status-dot connecting"></span>
+        <span id="status-text">Bağlanıyor...</span>
+      </div>
+      <span id="count-badge" class="count-badge" hidden></span>
+      <button class="btn-outline" id="btn-qr">🖨 Masa QR Kodları</button>
+    </div>
+  </header>
+
+  <main class="main">
+    <div id="empty" class="empty" style="display:none">
+      <div class="empty-icon">✅</div>
+      <p>Bekleyen sipariş yok — harika iş!</p>
+    </div>
+    <div id="grid" class="orders-grid"></div>
+  </main>
+</div>
+
+<script type="module">
+import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getFirestore, collection, query, where, onSnapshot, updateDoc, doc }
+  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+// ── Firebase ────────────────────────────────────────────────────────────
+const app = initializeApp({
+  apiKey:            "AIzaSyA9G07B7flKHBzFSe_QtaF6lBcOuVDLREQ",
+  authDomain:        "dalton-kebap.firebaseapp.com",
+  projectId:         "dalton-kebap",
+  storageBucket:     "dalton-kebap.firebasestorage.app",
+  messagingSenderId: "633937883385",
+  appId:             "1:633937883385:web:a22dc3081a17c96ea9b228"
+});
+const db = getFirestore(app);
+
+// ── DOM refs ─────────────────────────────────────────────────────────────
+const grid       = document.getElementById('grid');
+const empty      = document.getElementById('empty');
+const statusDot  = document.getElementById('status-dot');
+const statusText = document.getElementById('status-text');
+const cntBadge   = document.getElementById('count-badge');
+
+// ── State ─────────────────────────────────────────────────────────────────
+let knownIds  = new Set();
+let firstLoad = true;
+
+// ── Helpers ──────────────────────────────────────────────────────────────
+function setStatus(s) {
+  statusDot.className = 'status-dot ' + s;
+  statusText.textContent = { connected:'Bağlı', connecting:'Bağlanıyor…', disconnected:'Bağlantı kesildi' }[s] || s;
+}
+
+function beep() {
+  try {
+    const ctx  = new AudioContext();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 880; osc.type = 'sine';
+    gain.gain.setValueAtTime(0.25, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
+  } catch {}
+}
+
+function fmtElapsed(tsMs) {
+  if (!tsMs) return '—';
+  const s = Math.floor((Date.now() - tsMs) / 1000);
+  if (s < 60)  return `${s}s`;
+  const m = Math.floor(s / 60);
+  if (m < 60)  return `${m} dk`;
+  return `${Math.floor(m / 60)} sa ${m % 60} dk`;
+}
+
+function fmtPrice(p) {
+  const n = parseFloat(String(p).replace(/[^\d.]/g, ''));
+  return isNaN(n) ? '' : `${n} ₺`;
+}
+
+function updateElapsed(card) {
+  const el = card.querySelector('.elapsed');
+  if (el && card.dataset.ts) el.textContent = fmtElapsed(+card.dataset.ts);
+}
+
+// ── Render ────────────────────────────────────────────────────────────────
+function renderOrders(orders) {
+  const incoming = new Set(orders.map(o => o.id));
+
+  // Remove stale cards
+  grid.querySelectorAll('.order-card').forEach(card => {
+    if (!incoming.has(card.dataset.id)) {
+      card.classList.add('fade-out');
+      card.addEventListener('animationend', () => card.remove(), { once: true });
+    }
+  });
+
+  let hasNew = false;
+  orders.forEach(order => {
+    const isNew = !knownIds.has(order.id);
+    if (isNew && !firstLoad) hasNew = true;
+    const tsMs = order.timestamp ? order.timestamp.toMillis() : null;
+
+    const existing = grid.querySelector(`[data-id="${order.id}"]`);
+    if (existing) {
+      if (tsMs) existing.dataset.ts = tsMs;   // fill in once server timestamp arrives
+      updateElapsed(existing);
+      return;
+    }
+
+    // Build card
+    const items = order.order_items || [];
+    const card  = document.createElement('div');
+    card.className  = 'order-card' + (isNew && !firstLoad ? ' new-order' : '');
+    card.dataset.id = order.id;
+    if (tsMs) card.dataset.ts = tsMs;
+
+    const itemsHTML = items.length
+      ? items.map(it => `
+          <div class="item-row">
+            <span class="item-name">${it.name}</span>
+            <span class="item-qty">× ${it.quantity}</span>
+          </div>`).join('')
+      : '<span style="color:var(--muted);font-size:.85rem">—</span>';
+
+    card.innerHTML = `
+      <div class="card-head">
+        <div class="table-num">MASA ${order.table_id}</div>
+        <div class="time-col">
+          <span class="elapsed">${fmtElapsed(tsMs)}</span>
+          <span class="ago">önce</span>
+        </div>
+      </div>
+      <div class="card-items">${itemsHTML}</div>
+      <div class="card-foot">
+        <div class="total">${fmtPrice(order.total_price)}</div>
+        <button class="btn-serve">✓ Servis Edildi</button>
+      </div>
+    `;
+
+    card.querySelector('.btn-serve').addEventListener('click', () => markServed(order.id, card));
+
+    if (isNew && !firstLoad) {
+      setTimeout(() => card.classList.remove('new-order'), 9000);
+    }
+
+    grid.appendChild(card);
+  });
+
+  if (hasNew) beep();
+  knownIds  = incoming;
+  firstLoad = false;
+
+  const n = orders.length;
+  empty.style.display = n === 0 ? 'block' : 'none';
+  if (n > 0) {
+    cntBadge.removeAttribute('hidden');
+    cntBadge.textContent = `${n} sipariş bekliyor`;
+  } else {
+    cntBadge.setAttribute('hidden', '');
+  }
+}
+
+// ── Mark served ─────────────────────────────────────────────────────────
+async function markServed(orderId, card) {
+  const btn = card.querySelector('.btn-serve');
+  btn.disabled = true;
+  btn.textContent = '…';
+  try {
+    await updateDoc(doc(db, 'orders', orderId), { status: 'served' });
+  } catch (err) {
+    console.error(err);
+    btn.disabled = false;
+    btn.textContent = '✓ Servis Edildi';
+  }
+}
+
+// ── Firestore listener ─────────────────────────────────────────────────
+setStatus('connecting');
+// No server orderBy — avoids composite index; client sorts FIFO (≤13 tables is trivial).
+onSnapshot(
+  query(collection(db, 'orders'), where('status', '==', 'pending')),
+  snap => {
+    setStatus('connected');
+    const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    orders.sort((a, b) => {
+      const ta = a.timestamp ? a.timestamp.toMillis() : 0;
+      const tb = b.timestamp ? b.timestamp.toMillis() : 0;
+      return ta - tb;
+    });
+    renderOrders(orders);
+  },
+  err => { console.error(err); setStatus('disconnected'); }
+);
+
+// Refresh elapsed times every 30 s
+setInterval(() => grid.querySelectorAll('.order-card').forEach(updateElapsed), 30_000);
+
+// ── Print all table QR codes ──────────────────────────────────────────
+document.getElementById('btn-qr').addEventListener('click', () => {
+  const win = window.open('', '_blank', 'width=440,height=640');
+  if (!win) { alert('Pop-up engeli açık. Lütfen bu sayfa için açılır pencerelere izin verin.'); return; }
+
+  const base   = 'https://dalton-kebap.web.app';
+  const labels = Array.from({ length: 13 }, (_, i) => {
+    const n   = i + 1;
+    const url = `${base}?table=${n}`;
+    const qr  = `https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=${encodeURIComponent(url)}`;
+    return `
+      <div class="label">
+        <p class="name">DALTON'S KEBAP</p>
+        <p class="sub">❖ KEBAP · DÖNER ❖</p>
+        <hr>
+        <p class="tbl">MASA ${n}</p>
+        <img src="${qr}" alt="Masa ${n}">
+        <p class="hint">E-Menü için QR kodu okutun</p>
+        <p class="url">${url}</p>
+        <hr>
+      </div>`;
+  }).join('');
+
+  win.document.write(`<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<title>Masa QR Kodları — Dalton's Kebap</title>
+<style>
+  @page { size: 80mm auto; margin: 4mm 6mm; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; }
+  .label { text-align: center; color: #000; background: #fff; width: 68mm; padding: 3mm 0; page-break-after: always; }
+  .label:last-child { page-break-after: auto; }
+  .name { font-size: 13pt; font-weight: bold; letter-spacing: 2px; margin-bottom: 1mm; }
+  .sub  { font-size: 7pt; letter-spacing: 3px; margin-bottom: 2mm; color: #333; }
+  .tbl  { font-size: 22pt; font-weight: bold; letter-spacing: 4px; margin: 2mm 0; }
+  hr    { border: none; border-top: 1px dashed #aaa; margin: 2mm 0; }
+  img   { width: 56mm; height: 56mm; display: block; margin: 2mm auto; }
+  .hint { font-size: 7.5pt; color: #555; margin: 1mm 0; }
+  .url  { font-size: 5.5pt; color: #777; word-break: break-all; margin-top: 1mm; }
+</style>
+</head>
+<body>
+${labels}
+<script>
+  var imgs = document.querySelectorAll('img'), done = 0;
+  function tryPrint() { if (++done === imgs.length) window.print(); }
+  imgs.forEach(function(img) { if (img.complete) tryPrint(); else { img.onload = img.onerror = tryPrint; } });
+  window.onafterprint = function() { window.close(); };
+<\/script>
+</body>
+</html>`);
+  win.document.close();
+});
+</script>
+</body>
+</html>

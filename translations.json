@@ -1,0 +1,541 @@
+{
+  "categories": {
+    "OtFFqlSylMzzvRAunNWF": {
+      "_title_tr": "ÇORBALAR",
+      "title_en": "SOUPS",
+      "title_ar": "الحساء"
+    },
+    "yHYMRzrgMuIqb2CV7OM5": {
+      "_title_tr": "DÖNER",
+      "title_en": "DÖNER",
+      "title_ar": "دونر"
+    },
+    "1MwfDE6XFrOGEjAT085s": {
+      "_title_tr": "DÜRÜMLER",
+      "title_en": "WRAPS",
+      "title_ar": "دورومات"
+    },
+    "8ikFdeWoR7ew8Xcng574": {
+      "_title_tr": "EKMEK ARASI",
+      "title_en": "SANDWICHES",
+      "title_ar": "ساندويتشات"
+    },
+    "YV3GViUD01tCeiV2Z4ld": {
+      "_title_tr": "IZGARA & KEBAP",
+      "title_en": "GRILLS & KEBAB",
+      "title_ar": "مشويات وكباب"
+    },
+    "x1g92dmj94U83Dggq2F8": {
+      "_title_tr": "TAVUK",
+      "title_en": "CHICKEN",
+      "title_ar": "دجاج"
+    },
+    "fgz0oQyGHQJWn4xPo5dg": {
+      "_title_tr": "ÖZEL KEBAPLAR",
+      "title_en": "SPECIAL KEBABS",
+      "title_ar": "كبابات خاصة"
+    },
+    "do2e5HfPue60bmbb3nNG": {
+      "_title_tr": "KARIŞIK TABAKLAR",
+      "title_en": "MIXED PLATES",
+      "title_ar": "أطباق مشكّلة"
+    }
+  },
+  "items": {
+    "1-1": {
+      "_category": "ÇORBALAR",
+      "_name_tr": "Mercimek Çorbası",
+      "_description_tr": "",
+      "name_en": "Red Lentil Soup",
+      "name_ar": "شوربة العدس الأحمر",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "1-2": {
+      "_category": "ÇORBALAR",
+      "_name_tr": "Ezogelin Çorbası",
+      "_description_tr": "",
+      "name_en": "Ezogelin Soup",
+      "name_ar": "شوربة ازوجلين",
+      "description_en": "Spiced red lentil & bulgur soup",
+      "description_ar": "شوربة العدس الأحمر مع البرغل والبهارات"
+    },
+    "2-1": {
+      "_category": "DÖNER",
+      "_name_tr": "Zurna Döner",
+      "_description_tr": "",
+      "name_en": "Zurna Döner",
+      "name_ar": "دونر زورنا",
+      "description_en": "Large rolled döner",
+      "description_ar": "دونر ملفوف كبير"
+    },
+    "2-2": {
+      "_category": "DÖNER",
+      "_name_tr": "Bazuka Döner",
+      "_description_tr": "",
+      "name_en": "Bazooka Döner",
+      "name_ar": "دونر بازوكا",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "2-3": {
+      "_category": "DÖNER",
+      "_name_tr": "Klasik Döner",
+      "_description_tr": "",
+      "name_en": "Classic Döner",
+      "name_ar": "دونر كلاسيك",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "2-4": {
+      "_category": "DÖNER",
+      "_name_tr": "Muska Döner",
+      "_description_tr": "",
+      "name_en": "Triangle Döner",
+      "name_ar": "دونر مثلث",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "2-5": {
+      "_category": "DÖNER",
+      "_name_tr": "Pilav Üstü Döner",
+      "_description_tr": "",
+      "name_en": "Döner over Rice",
+      "name_ar": "دونر مع أرز",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "2-6": {
+      "_category": "DÖNER",
+      "_name_tr": "Tavuk İskender",
+      "_description_tr": "",
+      "name_en": "Chicken İskender",
+      "name_ar": "إسكندر دجاج",
+      "description_en": "Chicken döner over flatbread with tomato sauce and butter",
+      "description_ar": "دونر دجاج على خبز مع صلصة الطماطم والزبدة"
+    },
+    "2-7": {
+      "_category": "DÖNER",
+      "_name_tr": "İskender",
+      "_description_tr": "",
+      "name_en": "İskender Kebab",
+      "name_ar": "كباب إسكندر",
+      "description_en": "Lamb döner over flatbread with tomato sauce and butter",
+      "description_ar": "دونر لحم على خبز مع صلصة الطماطم والزبدة"
+    },
+    "2-8": {
+      "_category": "DÖNER",
+      "_name_tr": "Hatay Usulü Döner",
+      "_description_tr": "",
+      "name_en": "Hatay Style Döner",
+      "name_ar": "دونر على طريقة هاتاي",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "2-9": {
+      "_category": "DÖNER",
+      "_name_tr": "Antakya Usulü Döner",
+      "_description_tr": "",
+      "name_en": "Antakya Style Döner",
+      "name_ar": "دونر على طريقة أنطاكيا",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "2-10": {
+      "_category": "DÖNER",
+      "_name_tr": "Antakya Kaşarlı Döner",
+      "_description_tr": "",
+      "name_en": "Antakya Döner with Kashar Cheese",
+      "name_ar": "دونر أنطاكيا بالجبن",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "2-11": {
+      "_category": "DÖNER",
+      "_name_tr": "Antakya Tavuklu Döner",
+      "_description_tr": "",
+      "name_en": "Antakya Chicken Döner",
+      "name_ar": "دونر أنطاكيا بالدجاج",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "53180fbb-be89-44ba-96f8-cc01c2a0eb3d": {
+      "_category": "DÖNER",
+      "_name_tr": "Urfa dürüm",
+      "_description_tr": "urfa usulu",
+      "name_en": "Urfa Wrap",
+      "name_ar": "دورم أورفا",
+      "description_en": "Urfa style",
+      "description_ar": "على الطريقة الأورفية"
+    },
+    "f56d00df-ec28-462c-ab5c-ff42f76c6d5a": {
+      "_category": "DÖNER",
+      "_name_tr": "Viranşehir dürüm",
+      "_description_tr": "",
+      "name_en": "Viranşehir Wrap",
+      "name_ar": "دورم فيرانشهير",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "3-1": {
+      "_category": "DÜRÜMLER",
+      "_name_tr": "Kebap Dürüm",
+      "_description_tr": "",
+      "name_en": "Kebab Wrap",
+      "name_ar": "دورم كباب",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "3-2": {
+      "_category": "DÜRÜMLER",
+      "_name_tr": "Et Kuşbaşı Dürüm",
+      "_description_tr": "",
+      "name_en": "Diced Meat Wrap",
+      "name_ar": "دورم لحم مقطّع",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "3-5": {
+      "_category": "DÜRÜMLER",
+      "_name_tr": "Tavuk Dürüm",
+      "_description_tr": "",
+      "name_en": "Chicken Wrap",
+      "name_ar": "دورم دجاج",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "3-6": {
+      "_category": "DÜRÜMLER",
+      "_name_tr": "Tavuk Tanuni",
+      "_description_tr": "",
+      "name_en": "Chicken Tanuni",
+      "name_ar": "تانوني دجاج",
+      "description_en": "Grilled chicken wrap with herbs",
+      "description_ar": "لفائف دجاج مشوي مع الأعشاب"
+    },
+    "3-7": {
+      "_category": "DÜRÜMLER",
+      "_name_tr": "Döner Dürüm",
+      "_description_tr": "",
+      "name_en": "Döner Wrap",
+      "name_ar": "دورم دونر",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "3-8": {
+      "_category": "DÜRÜMLER",
+      "_name_tr": "Ciğer Dürüm",
+      "_description_tr": "",
+      "name_en": "Liver Wrap",
+      "name_ar": "دورم كبدة",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "4-1": {
+      "_category": "EKMEK ARASI",
+      "_name_tr": "Ekmek Arası Köfte",
+      "_description_tr": "",
+      "name_en": "Meatball Sandwich",
+      "name_ar": "ساندويتش كفتة",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "4-2": {
+      "_category": "EKMEK ARASI",
+      "_name_tr": "Ekmek Arası Döner",
+      "_description_tr": "",
+      "name_en": "Döner Sandwich",
+      "name_ar": "ساندويتش دونر",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-1": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Adana Kebap Servis",
+      "_description_tr": "",
+      "name_en": "Adana Kebab Plate",
+      "name_ar": "طبق كباب عدنة",
+      "description_en": "Spicy minced lamb kebab on skewer, served with flatbread and salad",
+      "description_ar": "كباب لحم ضأن مفروم حار على سيخ، يُقدّم مع الخبز والسلطة"
+    },
+    "5-2": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Urfa Kebabı",
+      "_description_tr": "",
+      "name_en": "Urfa Kebab",
+      "name_ar": "كباب أورفا",
+      "description_en": "Mild minced lamb kebab",
+      "description_ar": "كباب لحم ضأن مفروم خفيف التوابل"
+    },
+    "5-3": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Viranşehir Kebabı",
+      "_description_tr": "",
+      "name_en": "Viranşehir Kebab",
+      "name_ar": "كباب فيرانشهير",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-4": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Siverek Kebabı",
+      "_description_tr": "",
+      "name_en": "Siverek Kebab",
+      "name_ar": "كباب سيفيريك",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-5": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Haşhaş Kebabı",
+      "_description_tr": "",
+      "name_en": "Poppy Seed Kebab",
+      "name_ar": "كباب الخشخاش",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-6": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Vali Kebabı",
+      "_description_tr": "",
+      "name_en": "Governor's Kebab",
+      "name_ar": "كباب الوالي",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-7": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Patlıcan Kebabı",
+      "_description_tr": "",
+      "name_en": "Eggplant Kebab",
+      "name_ar": "كباب الباذنجان",
+      "description_en": "Kebab served with grilled eggplant",
+      "description_ar": "كباب مقدّم مع الباذنجان المشوي"
+    },
+    "5-8": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Domatesli Köfte",
+      "_description_tr": "",
+      "name_en": "Meatballs with Tomato",
+      "name_ar": "كفتة بالطماطم",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-9": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Izgara Köfte",
+      "_description_tr": "",
+      "name_en": "Grilled Meatballs",
+      "name_ar": "كفتة مشوية",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-10": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Köfte Porsiyon",
+      "_description_tr": "",
+      "name_en": "Meatball Portion",
+      "name_ar": "حصة كفتة",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-11": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Satır Köfte",
+      "_description_tr": "",
+      "name_en": "Hand-Chopped Meatballs",
+      "name_ar": "كفتة الساطور",
+      "description_en": "Meatballs made from hand-minced meat",
+      "description_ar": "كفتة من لحم مفروم يدوياً بالساطور"
+    },
+    "5-12": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Et Şiş",
+      "_description_tr": "",
+      "name_en": "Meat Skewer",
+      "name_ar": "شيش لحم",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-13": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Kuşbaşı Şiş",
+      "_description_tr": "",
+      "name_en": "Diced Meat Skewer",
+      "name_ar": "شيش لحم مكعبات",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-14": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Kuşbaşı Servis",
+      "_description_tr": "",
+      "name_en": "Diced Meat Plate",
+      "name_ar": "طبق لحم مكعبات",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-15": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Tavuk Şiş",
+      "_description_tr": "",
+      "name_en": "Chicken Skewer",
+      "name_ar": "شيش دجاج",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-16": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Tavuk Kanat",
+      "_description_tr": "",
+      "name_en": "Chicken Wings",
+      "name_ar": "أجنحة دجاج",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-17": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Tavuk Pirzola",
+      "_description_tr": "",
+      "name_en": "Grilled Chicken Chop",
+      "name_ar": "شريحة دجاج مشوية",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-18": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Tavuklu Karışık Izgara",
+      "_description_tr": "",
+      "name_en": "Mixed Grill with Chicken",
+      "name_ar": "مشاوي مشكّلة بالدجاج",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-19": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Karışık Izgara",
+      "_description_tr": "",
+      "name_en": "Mixed Grill",
+      "name_ar": "مشاوي مشكّلة",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-20": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Etli Karışık Izgara",
+      "_description_tr": "",
+      "name_en": "Mixed Meat Grill",
+      "name_ar": "مشاوي مشكّلة باللحم",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-21": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Ciğer Kebabı",
+      "_description_tr": "",
+      "name_en": "Liver Kebab",
+      "name_ar": "كباب الكبدة",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-22": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "Ciğer Servis",
+      "_description_tr": "",
+      "name_en": "Liver Plate",
+      "name_ar": "طبق الكبدة",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "5-23": {
+      "_category": "IZGARA & KEBAP",
+      "_name_tr": "1 Kg Adana",
+      "_description_tr": "",
+      "name_en": "1 Kg Adana Kebab",
+      "name_ar": "1 كجم كباب عدنة",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "6-1": {
+      "_category": "TAVUK",
+      "_name_tr": "Yarım Tavuk / Piliç",
+      "_description_tr": "",
+      "name_en": "Half Chicken",
+      "name_ar": "نصف دجاجة",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "6-2": {
+      "_category": "TAVUK",
+      "_name_tr": "Izgara Tavuk But",
+      "_description_tr": "",
+      "name_en": "Grilled Chicken Leg",
+      "name_ar": "فخذ دجاج مشوي",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "6-3": {
+      "_category": "TAVUK",
+      "_name_tr": "Tavuk Izgara Tabak",
+      "_description_tr": "",
+      "name_en": "Grilled Chicken Plate",
+      "name_ar": "طبق دجاج مشوي",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "6-4": {
+      "_category": "TAVUK",
+      "_name_tr": "Tavuk Kanat Servis",
+      "_description_tr": "",
+      "name_en": "Chicken Wings Plate",
+      "name_ar": "طبق أجنحة دجاج",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "7-1": {
+      "_category": "ÖZEL KEBAPLAR",
+      "_name_tr": "Beyti Sarma",
+      "_description_tr": "",
+      "name_en": "Beyti Kebab Roll",
+      "name_ar": "بيتي سارما",
+      "description_en": "Spiced minced meat kebab wrapped in lavash bread",
+      "description_ar": "كباب لحم مفروم بالتوابل ملفوف في خبز اللاواش"
+    },
+    "7-2": {
+      "_category": "ÖZEL KEBAPLAR",
+      "_name_tr": "Kaşarlı Beyti Kebabı",
+      "_description_tr": "",
+      "name_en": "Beyti Kebab with Kashar Cheese",
+      "name_ar": "كباب بيتي بالجبن",
+      "description_en": "Beyti kebab roll topped with melted kashar cheese",
+      "description_ar": "كباب بيتي ملفوف بجبن القاشار المذاب"
+    },
+    "7-3": {
+      "_category": "ÖZEL KEBAPLAR",
+      "_name_tr": "Sultan Lokması",
+      "_description_tr": "",
+      "name_en": "Sultan's Bite",
+      "name_ar": "لقمة السلطان",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "8-1": {
+      "_category": "KARIŞIK TABAKLAR",
+      "_name_tr": "Karışık Şiş",
+      "_description_tr": "",
+      "name_en": "Mixed Skewers",
+      "name_ar": "شيش مشكّل",
+      "description_en": "",
+      "description_ar": ""
+    },
+    "8-2": {
+      "_category": "KARIŞIK TABAKLAR",
+      "_name_tr": "Karışık Izgara Tabak",
+      "_description_tr": "",
+      "name_en": "Mixed Grill Plate",
+      "name_ar": "طبق مشاوي مشكّلة",
+      "description_en": "",
+      "description_ar": ""
+    }
+  }
+}
