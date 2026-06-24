@@ -29,6 +29,70 @@
       min-height: 100vh;
     }
 
+    /* ── PIN GATE ─────────────────────────────── */
+
+    .pin-gate {
+      position: fixed;
+      inset: 0;
+      background: #030a05;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    .pin-card {
+      background: #081208;
+      border: 2px solid var(--green);
+      border-radius: 16px;
+      padding: 2.5rem 2rem;
+      width: min(340px, 90vw);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .pin-card h2 {
+      font-family: 'Oswald', sans-serif;
+      font-size: 1.35rem;
+      color: var(--green);
+      letter-spacing: 1px;
+    }
+
+    .pin-card p { color: var(--muted); font-size: 0.88rem; }
+
+    .pin-input {
+      background: #060f0a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 1.2rem;
+      padding: 0.65rem 1rem;
+      text-align: center;
+      letter-spacing: 4px;
+      width: 100%;
+      font-family: 'Open Sans', sans-serif;
+    }
+    .pin-input:focus { outline: 2px solid var(--green); border-color: transparent; }
+
+    .pin-btn {
+      background: var(--green);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      font-family: 'Oswald', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      padding: 0.7rem;
+      cursor: pointer;
+      transition: opacity 0.15s;
+    }
+    .pin-btn:hover { opacity: 0.88; }
+
+    .pin-error { color: var(--red); font-size: 0.82rem; min-height: 1.2em; }
+
     /* ── HEADER ─────────────────────────────── */
 
     .header {
@@ -331,7 +395,18 @@
 </head>
 <body>
 
-<header class="header" id="header">
+<!-- PIN gate -->
+<div id="pin-gate" class="pin-gate">
+  <div class="pin-card">
+    <h2>🔒 KASİYER PANELİ</h2>
+    <p>Erişmek için PIN girin</p>
+    <input type="password" id="pin-input" class="pin-input" maxlength="10" placeholder="••••" autocomplete="off">
+    <button id="pin-btn" class="pin-btn">Giriş</button>
+    <p id="pin-error" class="pin-error"></p>
+  </div>
+</div>
+
+<header class="header" id="header" hidden>
   <div class="header-top">
     <div class="header-brand">💵 KASİYER PANELİ</div>
     <div class="status-row">
@@ -347,7 +422,7 @@
   </div>
 </header>
 
-<div class="tabs" id="tabs">
+<div class="tabs" id="tabs" hidden>
   <button class="tab-btn active" data-tab="open">
     Açık Siparişler <span class="tab-count" id="tab-open-count">0</span>
   </button>
@@ -356,7 +431,7 @@
   </button>
 </div>
 
-<main class="main">
+<main class="main" id="main-content" hidden>
   <!-- OPEN ORDERS TAB -->
   <div id="tab-open" class="tab-panel active">
     <div id="empty-open" class="empty" style="display:none">
@@ -375,6 +450,54 @@
     <div id="grid-paid" class="paid-grid"></div>
   </div>
 </main>
+
+<!-- Synchronous PIN check -->
+<script>
+  var CASHIER_PIN = '1234'; // Change this to your preferred PIN
+  var PIN_SESSION_KEY = 'dk:cashier-pin';
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+  window.escHtml = escHtml;
+
+  function showApp() {
+    document.getElementById('pin-gate').style.display = 'none';
+    ['header','tabs','main-content'].forEach(function(id) {
+      document.getElementById(id).removeAttribute('hidden');
+    });
+  }
+
+  if (sessionStorage.getItem(PIN_SESSION_KEY) === '1') showApp();
+
+  document.getElementById('pin-btn').addEventListener('click', function() {
+    var val = document.getElementById('pin-input').value;
+    if (val === CASHIER_PIN) {
+      sessionStorage.setItem(PIN_SESSION_KEY, '1');
+      showApp();
+    } else {
+      document.getElementById('pin-error').textContent = 'Yanlış PIN, tekrar deneyin.';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-input').focus();
+    }
+  });
+
+  document.getElementById('pin-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('pin-btn').click();
+  });
+
+  // Reload at midnight so todayStart stays accurate across overnight shifts
+  (function scheduleMidnightReload() {
+    var now = new Date();
+    var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
+    setTimeout(function() { window.location.reload(); }, midnight - now);
+  })();
+</script>
 
 <script type="module">
 import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
@@ -407,6 +530,8 @@ const emptyOpen    = document.getElementById('empty-open');
 const emptyPaid    = document.getElementById('empty-paid');
 
 // ── Helpers ───────────────────────────────────────────────────────────────
+const esc = window.escHtml;
+
 function setStatus(s) {
   statusDot.className = 'status-dot ' + s;
   statusText.textContent = { connected:'Bağlı', connecting:'Bağlanıyor…', disconnected:'Bağlantı kesildi' }[s] || s;
@@ -425,7 +550,7 @@ function fmtTime(ts) {
 
 function sortOpen(orders) {
   return [...orders].sort((a, b) => {
-    // served (ready to pay) first
+    // served (ready to pay) first, then by table number
     if (a.status === 'served' && b.status !== 'served') return -1;
     if (b.status === 'served' && a.status !== 'served') return  1;
     return a.table_id - b.table_id;
@@ -433,8 +558,6 @@ function sortOpen(orders) {
 }
 
 // ── Open ticket rendering ─────────────────────────────────────────────────
-let knownOpenIds = new Set();
-
 function renderOpen(orders) {
   const incoming = new Set(orders.map(o => o.id));
 
@@ -449,11 +572,12 @@ function renderOpen(orders) {
   const sorted = sortOpen(orders);
 
   sorted.forEach(order => {
-    const existing = gridOpen.querySelector(`[data-id="${order.id}"]`);
+    const existing = gridOpen.querySelector(`[data-id="${esc(order.id)}"]`);
 
     if (existing) {
-      // Update status class and badge if status changed
+      // Update status class, badge, button text, and dataset
       existing.className = `order-card status-${order.status}`;
+      existing.dataset.status = order.status; // keep dataset in sync for error recovery
       const badge = existing.querySelector('.status-badge');
       if (badge) {
         badge.className = `status-badge badge-${order.status}`;
@@ -464,15 +588,15 @@ function renderOpen(orders) {
         btn.className = `btn-close ${order.status}`;
         btn.textContent = order.status === 'served' ? '💳 Kapat ve Öde' : 'Kapat';
       }
-      // Keep DOM in sorted order by appending in iteration order
+      // Keep DOM in sorted order
       gridOpen.appendChild(existing);
       return;
     }
 
     const items = order.order_items || [];
     const card  = document.createElement('div');
-    card.className   = `order-card status-${order.status}`;
-    card.dataset.id  = order.id;
+    card.className      = `order-card status-${order.status}`;
+    card.dataset.id     = order.id;
     card.dataset.status = order.status;
 
     const itemsHTML = items.length
@@ -480,8 +604,8 @@ function renderOpen(orders) {
           const lineTotal = it.price * it.quantity;
           return `
             <div class="item-row">
-              <span class="item-name">${it.name}</span>
-              <span class="item-qty">× ${it.quantity}</span>
+              <span class="item-name">${esc(it.name)}</span>
+              <span class="item-qty">× ${esc(it.quantity)}</span>
               <span class="item-price">${fmtPrice(lineTotal)}</span>
             </div>`;
         }).join('')
@@ -491,7 +615,7 @@ function renderOpen(orders) {
 
     card.innerHTML = `
       <div class="card-head">
-        <div class="table-num">MASA ${order.table_id}</div>
+        <div class="table-num">MASA ${esc(order.table_id)}</div>
         <div class="status-badge badge-${order.status}">
           ${isServed ? '✓ Hazır' : '⏳ Hazırlanıyor'}
         </div>
@@ -511,8 +635,6 @@ function renderOpen(orders) {
     card.querySelector('.btn-close').addEventListener('click', () => closeTicket(order.id, card));
     gridOpen.appendChild(card);
   });
-
-  knownOpenIds = incoming;
 
   // Stats
   const openTables = new Set(orders.map(o => o.table_id)).size;
@@ -540,15 +662,15 @@ function renderPaid(orders) {
   orders.forEach(order => {
     revenue += parseFloat(String(order.total_price ?? 0).replace(/[^\d.]/g, '')) || 0;
 
-    if (gridPaid.querySelector(`[data-id="${order.id}"]`)) return;
+    if (gridPaid.querySelector(`[data-id="${esc(order.id)}"]`)) return;
 
     const items   = order.order_items || [];
-    const summary = items.map(it => `${it.name} ×${it.quantity}`).join(', ');
+    const summary = items.map(it => `${esc(it.name)} ×${esc(it.quantity)}`).join(', ');
     const card    = document.createElement('div');
     card.className  = 'paid-card';
     card.dataset.id = order.id;
     card.innerHTML  = `
-      <div class="paid-table">MASA ${order.table_id}</div>
+      <div class="paid-table">MASA ${esc(order.table_id)}</div>
       <div class="paid-items">${summary || '—'}</div>
       <div class="paid-total">${fmtPrice(order.total_price)}</div>
       <div class="paid-time">${fmtTime(order.timestamp)}</div>
@@ -568,10 +690,11 @@ async function closeTicket(orderId, card) {
   btn.textContent = '…';
   try {
     await updateDoc(doc(db, 'orders', orderId), { status: 'paid' });
-    // card removed automatically by onSnapshot
+    // card removed automatically by the onSnapshot listener
   } catch (err) {
     console.error(err);
     btn.disabled    = false;
+    // Read from dataset.status (kept in sync by renderOpen)
     btn.textContent = card.dataset.status === 'served' ? '💳 Kapat ve Öde' : 'Kapat';
   }
 }
@@ -579,7 +702,7 @@ async function closeTicket(orderId, card) {
 // ── Firestore listeners ───────────────────────────────────────────────────
 setStatus('connecting');
 
-// Open tickets: pending + served (no orderBy to avoid composite index)
+// Open tickets: pending + served (no orderBy — avoids composite index, sorted client-side)
 onSnapshot(
   query(collection(db, 'orders'), where('status', 'in', ['pending', 'served'])),
   snap => {
@@ -589,7 +712,7 @@ onSnapshot(
   err => { console.error(err); setStatus('disconnected'); }
 );
 
-// Paid history: today's paid orders, newest first
+// Paid history: today's paid orders, newest first, up to 500 entries
 const todayStart = new Date();
 todayStart.setHours(0, 0, 0, 0);
 
@@ -599,14 +722,14 @@ onSnapshot(
     where('status', '==', 'paid'),
     where('timestamp', '>=', Timestamp.fromDate(todayStart)),
     orderBy('timestamp', 'desc'),
-    limit(50)
+    limit(500)
   ),
   snap => renderPaid(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
   err  => {
-    // If composite index not yet created, fall back to a simpler query
-    console.warn('Paid history needs a composite index. Falling back.', err.message);
+    // Composite index still building — fall back to unfiltered paid query
+    console.warn('Paid history index not ready, using fallback:', err.message);
     onSnapshot(
-      query(collection(db, 'orders'), where('status', '==', 'paid'), limit(50)),
+      query(collection(db, 'orders'), where('status', '==', 'paid'), limit(500)),
       snap => renderPaid(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     );
   }

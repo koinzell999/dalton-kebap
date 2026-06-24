@@ -123,6 +123,7 @@ export const translations = {
     submitting: "Gönderiliyor...",
     quantity: "Adet",
     orderFailed: "Sipariş gönderilemedi. Lütfen tekrar deneyin.",
+    tableHasOpenOrder: "Bu masanın açık bir siparişi var. Lütfen mevcut siparişi bekleyin.",
   },
   en: {
     // Public menu
@@ -246,6 +247,7 @@ export const translations = {
     submitting: "Submitting...",
     quantity: "Qty",
     orderFailed: "Failed to place order. Please try again.",
+    tableHasOpenOrder: "This table already has an open order. Please wait for it to be served.",
   },
   ar: {
     // Public menu
@@ -369,6 +371,7 @@ export const translations = {
     submitting: "جارٍ الإرسال...",
     quantity: "الكمية",
     orderFailed: "فشل إرسال الطلب. يرجى المحاولة مرة أخرى.",
+    tableHasOpenOrder: "هذه الطاولة لديها طلب مفتوح. يرجى الانتظار حتى يتم تقديمه.",
   },
 };
 

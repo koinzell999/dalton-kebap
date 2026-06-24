@@ -4,11 +4,17 @@ import SearchBar from './components/SearchBar';
 import CategoryTabs from './components/CategoryTabs';
 import ItemModal from './components/ItemModal';
 import { db } from './firebase';
-import { collection, getDocs, query, orderBy, addDoc, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, addDoc, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
 import { useLanguage, localize, parsePriceNum } from './i18n';
 import Cart from './components/Cart';
 import OrderStatus from './components/OrderStatus';
-import { initTableSession } from './lib/tableSession';
+import { initTableSession, clearTableSession } from './lib/tableSession';
+
+// ── Active-order session persistence ──────────────────────────────────────
+const ORDER_KEY = 'dk:active-order';
+function saveActiveOrder(id) { try { localStorage.setItem(ORDER_KEY, id); } catch {} }
+function clearActiveOrder()  { try { localStorage.removeItem(ORDER_KEY); } catch {} }
+function loadActiveOrder()   { try { return localStorage.getItem(ORDER_KEY) || null; } catch { return null; } }
 import './index.css';
 
 export default function App() {
@@ -95,9 +101,11 @@ export default function App() {
   const [tableNumber, setTableNumber] = React.useState(null);
   const [cart, setCart] = React.useState([]);
   const [showCart, setShowCart] = React.useState(false);
-  const [orderState, setOrderState] = React.useState('idle'); // idle | waiting | served
-  const [orderId, setOrderId] = React.useState(null);
+  // Restore orderId from localStorage so refresh during waiting/served doesn't lose state
+  const [orderId, setOrderId] = React.useState(() => loadActiveOrder());
+  const [orderState, setOrderState] = React.useState(() => loadActiveOrder() ? 'waiting' : 'idle');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [orderError, setOrderError] = React.useState(null);
 
   React.useEffect(() => {
     const sections = Array.from(document.querySelectorAll('.menu-section'));
@@ -258,7 +266,20 @@ export default function App() {
   async function placeOrder() {
     if (!tableNumber || cart.length === 0 || isSubmitting) return;
     setIsSubmitting(true);
+    setOrderError(null);
     try {
+      // Guard: reject if this table already has a pending or served order
+      const openSnap = await getDocs(
+        query(collection(db, 'orders'),
+          where('table_id', '==', tableNumber),
+          where('status', 'in', ['pending', 'served'])
+        )
+      );
+      if (!openSnap.empty) {
+        setOrderError(t('tableHasOpenOrder'));
+        return;
+      }
+
       const total = cart.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
       const ref = await addDoc(collection(db, 'orders'), {
         table_id: tableNumber,
@@ -272,31 +293,52 @@ export default function App() {
         status: 'pending',
         timestamp: serverTimestamp(),
       });
+      saveActiveOrder(ref.id);
       setOrderId(ref.id);
       setOrderState('waiting');
       setCart([]);
       setShowCart(false);
     } catch (err) {
       console.error('Order failed:', err);
+      setOrderError(t('orderFailed'));
     } finally {
       setIsSubmitting(false);
     }
   }
 
   function handleNewOrder() {
+    clearActiveOrder();
     setOrderId(null);
     setOrderState('idle');
   }
 
   // ── Real-time order status listener ──
+  // Deps: only orderId — handles recovery after page refresh by reading current status.
   React.useEffect(() => {
-    if (!orderId || orderState !== 'waiting') return;
+    if (!orderId) return;
     const unsub = onSnapshot(doc(db, 'orders', orderId), (snap) => {
-      if (!snap.exists()) return;
-      if (snap.data().status === 'served') setOrderState('served');
+      if (!snap.exists()) {
+        clearActiveOrder();
+        setOrderId(null);
+        setOrderState('idle');
+        return;
+      }
+      const status = snap.data().status;
+      if (status === 'pending') {
+        setOrderState('waiting');
+      } else if (status === 'served') {
+        setOrderState('served');
+      } else if (status === 'paid') {
+        // Bill closed — clear binding so next customer doesn't inherit this table from localStorage
+        clearActiveOrder();
+        clearTableSession();
+        setOrderId(null);
+        setOrderState('idle');
+        setTableNumber(null);
+      }
     });
     return unsub;
-  }, [orderId, orderState]);
+  }, [orderId]);
 
   if (loading) return <div className="loader-container"><div className="loader"></div><p>{t('loadingMenu')}</p></div>;
   if (error) return <div className="error-container"><p>{error}</p><button onClick={() => window.location.reload()}>{t('retryButton')}</button></div>;
@@ -465,9 +507,10 @@ export default function App() {
             onUpdateQty={updateCartQty}
             onRemove={removeFromCart}
             onPlaceOrder={placeOrder}
-            onClose={() => setShowCart(false)}
+            onClose={() => { setShowCart(false); setOrderError(null); }}
             tableNumber={tableNumber}
             isSubmitting={isSubmitting}
+            orderError={orderError}
             t={t}
             isRTL={isRTL}
           />

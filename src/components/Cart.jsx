@@ -9,6 +9,7 @@ export default function Cart({
   onClose,
   tableNumber,
   isSubmitting,
+  orderError = null,
   t,
   isRTL,
 }) {
@@ -71,6 +72,10 @@ export default function Cart({
 
               {!tableNumber && (
                 <p className="cart-no-table">{t('noTableWarning')}</p>
+              )}
+
+              {orderError && (
+                <p className="cart-order-error">{orderError}</p>
               )}
 
               <button

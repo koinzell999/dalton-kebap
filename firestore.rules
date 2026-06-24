@@ -13,11 +13,38 @@ service cloud.firestore {
       }
     }
 
-    // orders — customers create, kitchen/cashier read + update, never delete
+    // orders — customers create (validated), kitchen/cashier update via valid transitions only
     match /orders/{orderId} {
-      allow create: if true;
-      allow read, update: if true;
+      allow create: if validOrderCreate();
+      allow read:   if true;
+      allow update: if validStatusUpdate();
       allow delete: if false;
+    }
+
+    // A new order must have exactly the required fields with sane values.
+    function validOrderCreate() {
+      let d = request.resource.data;
+      return d.keys().hasAll(['table_id', 'order_items', 'total_price', 'status', 'timestamp'])
+          && d.status    == 'pending'
+          && d.table_id  is int
+          && d.table_id  >= 1
+          && d.table_id  <= 13
+          && d.order_items is list
+          && d.order_items.size() > 0
+          && d.order_items.size() <= 50
+          && d.total_price is number
+          && d.total_price > 0;
+    }
+
+    // Only the status field may change, and only along valid transitions.
+    function validStatusUpdate() {
+      let current = resource.data.status;
+      let next    = request.resource.data.status;
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status'])
+          && (
+               (current == 'pending' && next == 'served') ||
+               (current == 'served'  && next == 'paid')
+             );
     }
 
     match /{document=**} {

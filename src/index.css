@@ -1299,7 +1299,8 @@ body {
   font-weight: 700;
 }
 
-.cart-no-table {
+.cart-no-table,
+.cart-order-error {
   background: rgba(239, 68, 68, 0.1);
   border: 1px solid rgba(239, 68, 68, 0.4);
   border-radius: 8px;
