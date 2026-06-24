@@ -193,7 +193,7 @@
 
     .orders-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(min(290px, 100%), 1fr));
       gap: 1rem;
       align-items: start;
     }
@@ -271,7 +271,10 @@
       justify-content: space-between;
       align-items: center;
       gap: 0.5rem;
+      flex-wrap: wrap;
     }
+
+    .btn-serve { flex-shrink: 0; }
 
     .total {
       font-family: 'Oswald', sans-serif;
