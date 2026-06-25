@@ -1,12 +1,27 @@
 import React from 'react';
 
-export default function OrderStatus({ orderState, tableNumber, onNewOrder, t, isRTL }) {
+export default function OrderStatus({ orderState, tableNumber, orderNumber, editTimeLeft, onEdit, onNewOrder, t, isRTL }) {
   const isServed = orderState === 'served';
+  const canEdit  = !isServed && editTimeLeft != null && editTimeLeft > 0;
+
+  function fmtCountdown(secs) {
+    const m = Math.floor(secs / 60);
+    const s = secs % 60;
+    return t('editWindowRemaining')
+      .replace('{m}', m)
+      .replace('{s}', String(s).padStart(2, '0'));
+  }
 
   return (
     <div className="order-status-overlay" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="order-status-card">
         <div className="order-status-icon">{isServed ? '🎉' : '🍽️'}</div>
+
+        {orderNumber != null && (
+          <div className="order-status-number">
+            #{String(orderNumber).padStart(3, '0')}
+          </div>
+        )}
 
         <h2 className="order-status-title">
           {isServed ? t('orderServedTitle') : t('orderReceivedTitle')}
@@ -23,6 +38,17 @@ export default function OrderStatus({ orderState, tableNumber, onNewOrder, t, is
         )}
 
         {!isServed && <div className="order-spinner" />}
+
+        {canEdit && (
+          <button type="button" className="btn order-edit-btn" onClick={onEdit}>
+            ✏️ {t('editOrder')}
+            <span className="order-edit-countdown"> — {fmtCountdown(editTimeLeft)}</span>
+          </button>
+        )}
+
+        {!isServed && editTimeLeft === 0 && (
+          <p className="order-edit-closed">{t('editWindowClosed')}</p>
+        )}
 
         {isServed && (
           <button type="button" className="btn btn-primary" onClick={onNewOrder}>

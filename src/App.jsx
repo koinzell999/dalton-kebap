@@ -4,17 +4,42 @@ import SearchBar from './components/SearchBar';
 import CategoryTabs from './components/CategoryTabs';
 import ItemModal from './components/ItemModal';
 import { db } from './firebase';
-import { collection, getDocs, query, orderBy, where, addDoc, doc, onSnapshot, serverTimestamp } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, addDoc, doc, getDoc, onSnapshot, serverTimestamp, runTransaction, updateDoc } from 'firebase/firestore';
 import { useLanguage, localize, parsePriceNum } from './i18n';
 import Cart from './components/Cart';
 import OrderStatus from './components/OrderStatus';
-import { initTableSession, clearTableSession } from './lib/tableSession';
+import { initTableSession, clearTableSession, getOrCreateSessionId, getCooldownRemaining, recordOrderPlaced, clearOrderCooldown } from './lib/tableSession';
 
 // ── Active-order session persistence ──────────────────────────────────────
 const ORDER_KEY = 'dk:active-order';
-function saveActiveOrder(id) { try { localStorage.setItem(ORDER_KEY, id); } catch {} }
-function clearActiveOrder()  { try { localStorage.removeItem(ORDER_KEY); } catch {} }
-function loadActiveOrder()   { try { return localStorage.getItem(ORDER_KEY) || null; } catch { return null; } }
+function saveActiveOrder(id, number, ts) {
+  try { localStorage.setItem(ORDER_KEY, JSON.stringify({ id, number, ts })); } catch {}
+}
+function clearActiveOrder() { try { localStorage.removeItem(ORDER_KEY); } catch {} }
+function loadActiveOrder()  {
+  try {
+    const raw = localStorage.getItem(ORDER_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+// Daily sequential reference number via Firestore transaction
+async function getNextOrderNumber(db) {
+  const today = new Date().toISOString().slice(0, 10);
+  const counterRef = doc(db, 'counters', 'daily');
+  try {
+    return await runTransaction(db, async (tx) => {
+      const snap = await tx.get(counterRef);
+      let count = 1;
+      if (snap.exists() && snap.data().date === today) count = (snap.data().count || 0) + 1;
+      tx.set(counterRef, { date: today, count });
+      return count;
+    });
+  } catch {
+    const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
+    return (Math.floor((Date.now() - midnight.getTime()) / 1000) % 999) + 1;
+  }
+}
 import './index.css';
 
 export default function App() {
@@ -101,11 +126,18 @@ export default function App() {
   const [tableNumber, setTableNumber] = React.useState(null);
   const [cart, setCart] = React.useState([]);
   const [showCart, setShowCart] = React.useState(false);
-  // Restore orderId from localStorage so refresh during waiting/served doesn't lose state
-  const [orderId, setOrderId] = React.useState(() => loadActiveOrder());
-  const [orderState, setOrderState] = React.useState(() => loadActiveOrder() ? 'waiting' : 'idle');
   const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [orderError, setOrderError] = React.useState(null);
+  const [isEditing, setIsEditing] = React.useState(false);
+
+  const [sessionId] = React.useState(() => getOrCreateSessionId());
+  const _savedOrder = React.useMemo(() => loadActiveOrder(), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const [orderId, setOrderId] = React.useState(() => _savedOrder?.id || null);
+  const [orderNumber, setOrderNumber] = React.useState(() => _savedOrder?.number || null);
+  const [orderPlacedAt, setOrderPlacedAt] = React.useState(() => _savedOrder?.ts || null);
+  const [orderState, setOrderState] = React.useState(() => _savedOrder?.id ? 'waiting' : 'idle');
+  const [editTimeLeft, setEditTimeLeft] = React.useState(null);
+  const [cooldownLeft, setCooldownLeft] = React.useState(() => getCooldownRemaining());
 
   React.useEffect(() => {
     const sections = Array.from(document.querySelectorAll('.menu-section'));
@@ -233,6 +265,29 @@ export default function App() {
     setTableNumber(table);
   }, []);
 
+  // ── Cooldown countdown ──
+  React.useEffect(() => {
+    if (cooldownLeft <= 0) return;
+    const interval = setInterval(() => {
+      const rem = getCooldownRemaining();
+      setCooldownLeft(rem);
+      if (rem <= 0) clearInterval(interval);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [cooldownLeft]);
+
+  // ── Edit window countdown (10 minutes from order placement) ──
+  const EDIT_WINDOW_SEC = 10 * 60;
+  React.useEffect(() => {
+    if (orderState !== 'waiting' || !orderPlacedAt) { setEditTimeLeft(null); return; }
+    function tick() {
+      setEditTimeLeft(Math.max(0, EDIT_WINDOW_SEC - Math.floor((Date.now() - orderPlacedAt) / 1000)));
+    }
+    tick();
+    const interval = setInterval(tick, 1000);
+    return () => clearInterval(interval);
+  }, [orderState, orderPlacedAt]);
+
   // ── Cart management ──
   function addToCart(item, qty, displayName) {
     setCart((prev) => {
@@ -264,25 +319,25 @@ export default function App() {
   }
 
   async function placeOrder() {
+    if (isEditing) return saveEdit();
     if (!tableNumber || cart.length === 0 || isSubmitting) return;
+
+    const cooldown = getCooldownRemaining();
+    if (cooldown > 0) {
+      setOrderError(t('cooldownWarning').replace('{sec}', cooldown));
+      return;
+    }
+
     setIsSubmitting(true);
     setOrderError(null);
     try {
-      // Guard: reject if this table already has a pending or served order
-      const openSnap = await getDocs(
-        query(collection(db, 'orders'),
-          where('table_id', '==', tableNumber),
-          where('status', 'in', ['pending', 'served'])
-        )
-      );
-      if (!openSnap.empty) {
-        setOrderError(t('tableHasOpenOrder'));
-        return;
-      }
-
+      const number = await getNextOrderNumber(db);
+      const now = Date.now();
       const total = cart.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
       const ref = await addDoc(collection(db, 'orders'), {
         table_id: tableNumber,
+        session_id: sessionId,
+        order_number: number,
         order_items: cart.map((item) => ({
           id: item.id,
           name: item.name,
@@ -293,8 +348,11 @@ export default function App() {
         status: 'pending',
         timestamp: serverTimestamp(),
       });
-      saveActiveOrder(ref.id);
+      saveActiveOrder(ref.id, number, now);
+      recordOrderPlaced();
       setOrderId(ref.id);
+      setOrderNumber(number);
+      setOrderPlacedAt(now);
       setOrderState('waiting');
       setCart([]);
       setShowCart(false);
@@ -306,10 +364,62 @@ export default function App() {
     }
   }
 
+  async function startEdit() {
+    if (!orderId || orderState !== 'waiting') return;
+    try {
+      const snap = await getDoc(doc(db, 'orders', orderId));
+      if (!snap.exists() || snap.data().status !== 'pending') return;
+      const restoredCart = snap.data().order_items.map((it) => ({
+        id: it.id,
+        name: it.name,
+        displayName: it.name,
+        price: String(it.price),
+        priceNum: it.price,
+        quantity: it.quantity,
+      }));
+      setCart(restoredCart);
+      setIsEditing(true);
+      setShowCart(true);
+    } catch (err) {
+      console.error('Failed to load order for editing:', err);
+    }
+  }
+
+  async function saveEdit() {
+    if (!orderId || cart.length === 0 || isSubmitting) return;
+    setIsSubmitting(true);
+    setOrderError(null);
+    try {
+      const total = cart.reduce((sum, item) => sum + item.priceNum * item.quantity, 0);
+      await updateDoc(doc(db, 'orders', orderId), {
+        order_items: cart.map((item) => ({
+          id: item.id,
+          name: item.name,
+          price: item.priceNum,
+          quantity: item.quantity,
+        })),
+        total_price: total,
+      });
+      setIsEditing(false);
+      setCart([]);
+      setShowCart(false);
+    } catch (err) {
+      console.error('Edit failed:', err);
+      setOrderError(t('orderFailed'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }
+
   function handleNewOrder() {
     clearActiveOrder();
+    clearOrderCooldown();
     setOrderId(null);
+    setOrderNumber(null);
+    setOrderPlacedAt(null);
     setOrderState('idle');
+    setIsEditing(false);
+    setCooldownLeft(0);
   }
 
   // ── Real-time order status listener ──
@@ -329,10 +439,11 @@ export default function App() {
       } else if (status === 'served') {
         setOrderState('served');
       } else if (status === 'paid') {
-        // Bill closed — clear binding so next customer doesn't inherit this table from localStorage
         clearActiveOrder();
         clearTableSession();
         setOrderId(null);
+        setOrderNumber(null);
+        setOrderPlacedAt(null);
         setOrderState('idle');
         setTableNumber(null);
       }
@@ -507,10 +618,15 @@ export default function App() {
             onUpdateQty={updateCartQty}
             onRemove={removeFromCart}
             onPlaceOrder={placeOrder}
-            onClose={() => { setShowCart(false); setOrderError(null); }}
+            onClose={() => {
+              setShowCart(false);
+              setOrderError(null);
+              if (isEditing) { setIsEditing(false); setCart([]); }
+            }}
             tableNumber={tableNumber}
             isSubmitting={isSubmitting}
             orderError={orderError}
+            isEditing={isEditing}
             t={t}
             isRTL={isRTL}
           />
@@ -520,6 +636,9 @@ export default function App() {
           <OrderStatus
             orderState={orderState}
             tableNumber={tableNumber}
+            orderNumber={orderNumber}
+            editTimeLeft={editTimeLeft}
+            onEdit={startEdit}
             onNewOrder={handleNewOrder}
             t={t}
             isRTL={isRTL}

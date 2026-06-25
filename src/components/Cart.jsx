@@ -10,6 +10,7 @@ export default function Cart({
   tableNumber,
   isSubmitting,
   orderError = null,
+  isEditing = false,
   t,
   isRTL,
 }) {
@@ -20,7 +21,7 @@ export default function Cart({
       <div className="cart-panel" onClick={(e) => e.stopPropagation()}>
         <div className="cart-header">
           <div>
-            <h2 className="cart-title">{t('cart')}</h2>
+            <h2 className="cart-title">{isEditing ? t('editOrder') : t('cart')}</h2>
             {tableNumber && (
               <p className="cart-table-label">{t('table')} {tableNumber}</p>
             )}
@@ -84,7 +85,7 @@ export default function Cart({
                 onClick={onPlaceOrder}
                 disabled={!tableNumber || isSubmitting || cart.length === 0}
               >
-                {isSubmitting ? t('submitting') : t('placeOrder')}
+                {isSubmitting ? t('submitting') : isEditing ? t('saveChanges') : t('placeOrder')}
               </button>
             </div>
           </>

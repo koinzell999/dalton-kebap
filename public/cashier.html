@@ -274,12 +274,22 @@
 
     .table-num {
       font-family: 'Oswald', sans-serif;
-      font-size: 1.4rem;
+      font-size: 1.35rem;
       font-weight: 700;
       letter-spacing: 1px;
+      line-height: 1.15;
     }
     .status-served  .table-num { color: var(--green); }
     .status-pending .table-num { color: var(--yellow); }
+
+    .order-ref {
+      display: block;
+      font-size: 0.78rem;
+      color: var(--orange);
+      letter-spacing: 2px;
+      font-weight: 600;
+      margin-top: 1px;
+    }
 
     .status-badge {
       font-family: 'Oswald', sans-serif;
@@ -377,10 +387,19 @@
 
     .paid-table {
       font-family: 'Oswald', sans-serif;
-      font-size: 1rem;
+      font-size: 0.95rem;
       font-weight: 700;
       color: #3a6344;
       white-space: nowrap;
+      line-height: 1.2;
+    }
+
+    .paid-ref {
+      display: block;
+      font-size: 0.7rem;
+      color: #2a5038;
+      letter-spacing: 1px;
+      font-weight: 600;
     }
 
     .paid-items { min-width: 0; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -552,6 +571,10 @@ function setStatus(s) {
   statusText.textContent = { connected:'Bağlı', connecting:'Bağlanıyor…', disconnected:'Bağlantı kesildi' }[s] || s;
 }
 
+function padNum(n) {
+  return n != null ? '#' + String(n).padStart(3, '0') : '';
+}
+
 function fmtPrice(p) {
   const n = parseFloat(String(p ?? 0).replace(/[^\d.]/g, ''));
   return isNaN(n) ? '—' : `${n.toLocaleString('tr-TR')} ₺`;
@@ -630,7 +653,10 @@ function renderOpen(orders) {
 
     card.innerHTML = `
       <div class="card-head">
-        <div class="table-num">MASA ${esc(order.table_id)}</div>
+        <div class="table-num">
+          MASA ${esc(order.table_id)}
+          ${order.order_number != null ? `<span class="order-ref">${esc(padNum(order.order_number))}</span>` : ''}
+        </div>
         <div class="status-badge badge-${order.status}">
           ${isServed ? '✓ Hazır' : '⏳ Hazırlanıyor'}
         </div>
@@ -685,7 +711,10 @@ function renderPaid(orders) {
     card.className  = 'paid-card';
     card.dataset.id = order.id;
     card.innerHTML  = `
-      <div class="paid-table">MASA ${esc(order.table_id)}</div>
+      <div class="paid-table">
+        MASA ${esc(order.table_id)}
+        ${order.order_number != null ? `<span class="paid-ref">${esc(padNum(order.order_number))}</span>` : ''}
+      </div>
       <div class="paid-items">${summary || '—'}</div>
       <div class="paid-total">${fmtPrice(order.total_price)}</div>
       <div class="paid-time">${fmtTime(order.timestamp)}</div>

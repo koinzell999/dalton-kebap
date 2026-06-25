@@ -124,6 +124,12 @@ export const translations = {
     quantity: "Adet",
     orderFailed: "Sipariş gönderilemedi. Lütfen tekrar deneyin.",
     tableHasOpenOrder: "Bu masanın açık bir siparişi var. Lütfen mevcut siparişi bekleyin.",
+    orderNumber: "Sipariş No",
+    editOrder: "Siparişi Düzenle",
+    saveChanges: "Değişiklikleri Kaydet",
+    editWindowRemaining: "Düzenleme: {m}dk {s}sn kaldı",
+    editWindowClosed: "Düzenleme süresi doldu",
+    cooldownWarning: "Lütfen {sec} saniye bekleyin",
   },
   en: {
     // Public menu
@@ -248,6 +254,12 @@ export const translations = {
     quantity: "Qty",
     orderFailed: "Failed to place order. Please try again.",
     tableHasOpenOrder: "This table already has an open order. Please wait for it to be served.",
+    orderNumber: "Order No",
+    editOrder: "Edit Order",
+    saveChanges: "Save Changes",
+    editWindowRemaining: "Edit closes in {m}m {s}s",
+    editWindowClosed: "Edit window closed",
+    cooldownWarning: "Please wait {sec} seconds",
   },
   ar: {
     // Public menu
@@ -372,6 +384,12 @@ export const translations = {
     quantity: "الكمية",
     orderFailed: "فشل إرسال الطلب. يرجى المحاولة مرة أخرى.",
     tableHasOpenOrder: "هذه الطاولة لديها طلب مفتوح. يرجى الانتظار حتى يتم تقديمه.",
+    orderNumber: "رقم الطلب",
+    editOrder: "تعديل الطلب",
+    saveChanges: "حفظ التغييرات",
+    editWindowRemaining: "التعديل ينتهي خلال {m}د {s}ث",
+    editWindowClosed: "انتهى وقت التعديل",
+    cooldownWarning: "يرجى الانتظار {sec} ثانية",
   },
 };
 
