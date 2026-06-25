@@ -284,6 +284,14 @@
       flex-wrap: wrap;
     }
 
+    /* Keep the two action buttons grouped so they wrap together on narrow screens */
+    .card-btns {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
     .btn-serve { flex-shrink: 0; }
 
     .total {
@@ -574,8 +582,10 @@ function renderOrders(orders) {
       <div class="card-items">${itemsHTML}</div>
       <div class="card-foot">
         <div class="total">${fmtPrice(order.total_price)}</div>
-        <button class="btn-reject">✕ Reddet</button>
-        <button class="btn-serve">✓ Servis Edildi</button>
+        <div class="card-btns">
+          <button class="btn-reject">✕ Reddet</button>
+          <button class="btn-serve">✓ Servis Edildi</button>
+        </div>
       </div>
     `;
 
@@ -670,7 +680,7 @@ function printReceipt(order) {
 function confirmReject(orderId, card) {
   if (card.dataset.confirming) return;
   card.dataset.confirming = '1';
-  card.querySelectorAll('.btn-serve,.btn-reject').forEach(b => b.style.display = 'none');
+  card.querySelector('.card-btns').style.display = 'none';
 
   const row = document.createElement('div');
   row.className = 'confirm-row';
@@ -690,39 +700,38 @@ function confirmReject(orderId, card) {
       console.error(err);
       delete card.dataset.confirming;
       row.remove();
-      card.querySelectorAll('.btn-serve,.btn-reject').forEach(b => b.style.display = '');
+      card.querySelector('.card-btns').style.display = '';
     }
   };
 
   row.querySelector('.btn-cno').onclick = () => {
     delete card.dataset.confirming;
     row.remove();
-    card.querySelectorAll('.btn-serve,.btn-reject').forEach(b => b.style.display = '');
+    card.querySelector('.card-btns').style.display = '';
   };
 }
 
 // ── Mark served ─────────────────────────────────────────────────────────
 async function markServed(orderId, card, order) {
   if (card.dataset.confirming) return;
+  const cardBtns  = card.querySelector('.card-btns');
   const btnServe  = card.querySelector('.btn-serve');
-  const btnReject = card.querySelector('.btn-reject');
-  btnServe.disabled  = true;
+  btnServe.disabled    = true;
   btnServe.textContent = '…';
-  if (btnReject) btnReject.disabled = true;
+  if (cardBtns) cardBtns.querySelectorAll('button').forEach(b => b.disabled = true);
   try {
     await updateDoc(doc(db, 'orders', orderId), { status: 'served' });
     const printed = printReceipt(order);
     if (!printed) {
-      btnServe.disabled = false;
+      btnServe.disabled    = false;
       btnServe.textContent = '🖨 Yazdır';
       btnServe.style.background = 'var(--orange)';
       btnServe.addEventListener('click', () => { printReceipt(order); }, { once: true });
     }
   } catch (err) {
     console.error(err);
-    btnServe.disabled = false;
+    if (cardBtns) cardBtns.querySelectorAll('button').forEach(b => b.disabled = false);
     btnServe.textContent = '✓ Servis Edildi';
-    if (btnReject) btnReject.disabled = false;
   }
 }
 

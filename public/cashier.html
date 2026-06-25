@@ -465,9 +465,15 @@
       white-space: nowrap;
       min-height: 38px;
       transition: opacity 0.15s;
+      flex-shrink: 0;
     }
     .btn-close-all:hover:not(:disabled) { opacity: 0.85; }
     .btn-close-all:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    @media (max-width: 400px) {
+      .table-group-header { flex-direction: column; align-items: stretch; gap: 0.5rem; }
+      .btn-close-all      { width: 100%; text-align: center; }
+    }
 
     /* ── INLINE CONFIRM ROW ───────────────────────────── */
     .confirm-row {
@@ -495,6 +501,11 @@
       cursor: pointer; white-space: nowrap;
     }
     .btn-cno:hover { border-color: var(--text); color: var(--text); }
+
+    @media (max-width: 360px) {
+      .confirm-row { flex-direction: column; align-items: stretch; }
+      .btn-cyes, .btn-cno { width: 100%; text-align: center; }
+    }
   </style>
 </head>
 <body>
