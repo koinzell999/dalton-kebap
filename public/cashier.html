@@ -261,6 +261,13 @@
       border-color: rgba(245,158,11,.35);
     }
 
+    /* ── SERVED ALERT FLASH ─────────────────────── */
+    @keyframes alertPulse {
+      0%,100% { box-shadow: 0 0 18px rgba(34,197,94,.25); }
+      40%     { box-shadow: 0 0 48px rgba(34,197,94,.95); }
+    }
+    .alert-flash { animation: alertPulse 0.65s ease 3; }
+
     .card-head {
       padding: 0.85rem 1rem;
       display: flex;
@@ -269,7 +276,7 @@
       border-bottom: 1px solid var(--border);
     }
 
-    .status-served .card-head { background: rgba(34,197,94,.08); }
+    .status-served .card-head  { background: rgba(34,197,94,.08); }
     .status-pending .card-head { background: rgba(245,158,11,.06); }
 
     .table-num {
@@ -420,6 +427,54 @@
       gap: 0.5rem;
     }
 
+    /* ── CANCELLED CARDS ─────────────────────────────────── */
+
+    .cancelled-card {
+      background: rgba(239,68,68,.04);
+      border: 1px solid rgba(239,68,68,.18);
+      border-radius: 12px;
+      padding: 0.75rem 1rem;
+      display: grid;
+      grid-template-columns: auto 1fr auto auto;
+      align-items: center;
+      gap: 0.5rem 0.75rem;
+      font-size: 0.875rem;
+      color: var(--muted);
+      animation: slideIn 0.25s ease;
+    }
+
+    @media (max-width: 480px) {
+      .cancelled-card { grid-template-columns: auto 1fr; }
+      .cancelled-total { grid-column: 1; }
+      .cancelled-time  { grid-column: 2; text-align: right; }
+    }
+
+    .cancelled-table {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: rgba(239,68,68,.7);
+      white-space: nowrap;
+      line-height: 1.2;
+    }
+    .cancelled-ref {
+      display: block;
+      font-size: 0.7rem;
+      color: rgba(239,68,68,.45);
+      letter-spacing: 1px;
+      font-weight: 600;
+    }
+    .cancelled-items { min-width: 0; font-size: 0.8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .cancelled-total {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: rgba(239,68,68,.6);
+      white-space: nowrap;
+      text-decoration: line-through;
+    }
+    .cancelled-time { font-size: 0.72rem; color: rgba(239,68,68,.35); white-space: nowrap; }
+
     .fade-out {
       animation: fadeOut 0.4s ease forwards;
       pointer-events: none;
@@ -544,6 +599,9 @@
   <button class="tab-btn" data-tab="paid">
     Ödendi <span class="tab-count" id="tab-paid-count">0</span>
   </button>
+  <button class="tab-btn" data-tab="cancelled">
+    İptal <span class="tab-count" id="tab-cancelled-count">0</span>
+  </button>
 </div>
 
 <main class="main" id="main-content" hidden>
@@ -563,6 +621,15 @@
       <p>Bugün henüz ödeme alınmadı.</p>
     </div>
     <div id="grid-paid" class="paid-grid"></div>
+  </div>
+
+  <!-- CANCELLED TAB -->
+  <div id="tab-cancelled" class="tab-panel">
+    <div id="empty-cancelled" class="empty" style="display:none">
+      <div class="empty-icon">✅</div>
+      <p>Bugün iptal edilen sipariş yok.</p>
+    </div>
+    <div id="grid-cancelled" class="paid-grid"></div>
   </div>
 </main>
 
@@ -631,21 +698,50 @@ const app = initializeApp({
 const db = getFirestore(app);
 
 // ── DOM refs ─────────────────────────────────────────────────────────────
-const statusDot    = document.getElementById('status-dot');
-const statusText   = document.getElementById('status-text');
-const statOpen     = document.getElementById('stat-open');
-const statReady    = document.getElementById('stat-ready');
-const statOpenTot  = document.getElementById('stat-open-total');
-const statRevenue  = document.getElementById('stat-revenue');
-const tabOpenCount = document.getElementById('tab-open-count');
-const tabPaidCount = document.getElementById('tab-paid-count');
-const gridOpen     = document.getElementById('grid-open');
-const gridPaid     = document.getElementById('grid-paid');
-const emptyOpen    = document.getElementById('empty-open');
-const emptyPaid    = document.getElementById('empty-paid');
+const statusDot         = document.getElementById('status-dot');
+const statusText        = document.getElementById('status-text');
+const statOpen          = document.getElementById('stat-open');
+const statReady         = document.getElementById('stat-ready');
+const statOpenTot       = document.getElementById('stat-open-total');
+const statRevenue       = document.getElementById('stat-revenue');
+const tabOpenCount      = document.getElementById('tab-open-count');
+const tabPaidCount      = document.getElementById('tab-paid-count');
+const tabCancelledCount = document.getElementById('tab-cancelled-count');
+const gridOpen          = document.getElementById('grid-open');
+const gridPaid          = document.getElementById('grid-paid');
+const emptyOpen         = document.getElementById('empty-open');
+const emptyPaid         = document.getElementById('empty-paid');
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 const esc = window.escHtml;
+
+// ── Audio alert (same AudioContext pattern as kitchen) ────────────────────
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx || _audioCtx.state === 'closed') {
+    try { _audioCtx = new AudioContext(); } catch { return null; }
+  }
+  return _audioCtx;
+}
+function beep() {
+  try {
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') ctx.resume();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = 660; osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
+  } catch {}
+}
+
+// ── Live order state ──────────────────────────────────────────────────────
+const openOrdersMap = new Map();  // id → latest order object (refreshed every snapshot)
+const prevStatusMap = new Map();  // id → previous status (detects pending→served transitions)
+let firstOpenLoad   = true;
 
 function setStatus(s) {
   statusDot.className = 'status-dot ' + s;
@@ -668,18 +764,14 @@ function fmtTime(ts) {
 }
 
 function sortOpen(orders) {
-  // Determine which tables have at least one served order (highest priority)
   const tableHasServed = {};
   orders.forEach(o => { if (o.status === 'served') tableHasServed[o.table_id] = true; });
 
   return [...orders].sort((a, b) => {
     const aReady = !!tableHasServed[a.table_id];
     const bReady = !!tableHasServed[b.table_id];
-    // Tables with any served order come first
     if (aReady !== bReady) return aReady ? -1 : 1;
-    // Group same table together
     if (a.table_id !== b.table_id) return a.table_id - b.table_id;
-    // Within table: served before pending
     if (a.status !== b.status) return a.status === 'served' ? -1 : 1;
     return 0;
   });
@@ -687,44 +779,61 @@ function sortOpen(orders) {
 
 // ── Open ticket rendering ─────────────────────────────────────────────────
 function renderOpen(orders) {
+  // Always keep openOrdersMap current so confirmClose/confirmCloseAll use live data
+  openOrdersMap.clear();
+  orders.forEach(o => openOrdersMap.set(o.id, o));
+
   const incoming = new Set(orders.map(o => o.id));
 
-  // Remove stale order cards
   gridOpen.querySelectorAll('.order-card').forEach(card => {
     if (!incoming.has(card.dataset.id)) {
+      prevStatusMap.delete(card.dataset.id);
       card.classList.add('fade-out');
       card.addEventListener('animationend', () => card.remove(), { once: true });
     }
   });
 
   const sorted = sortOpen(orders);
+  let hasNewServed = false;
 
   sorted.forEach(order => {
+    const prev        = prevStatusMap.get(order.id);
+    const isNewServed = !firstOpenLoad && order.status === 'served' && prev === 'pending';
+    if (isNewServed) hasNewServed = true;
+    prevStatusMap.set(order.id, order.status);
+
     const existing = gridOpen.querySelector(`.order-card[data-id="${esc(order.id)}"]`);
 
     if (existing) {
-      existing.className        = `order-card status-${order.status}`;
-      existing.dataset.status   = order.status;
-      existing.dataset.tableId  = order.table_id;
+      existing.className       = `order-card status-${order.status}`;
+      existing.dataset.status  = order.status;
+      existing.dataset.tableId = order.table_id;
       const badge = existing.querySelector('.status-badge');
       if (badge) {
-        badge.className  = `status-badge badge-${order.status}`;
+        badge.className   = `status-badge badge-${order.status}`;
         badge.textContent = order.status === 'served' ? '✓ Hazır' : '⏳ Hazırlanıyor';
       }
       const btn = existing.querySelector('.btn-close');
       if (btn && !existing.dataset.confirming) {
-        btn.className  = `btn-close ${order.status}`;
+        btn.className   = `btn-close ${order.status}`;
         btn.textContent = order.status === 'served' ? '💳 Kapat ve Öde' : 'Kapat';
+        btn.style.cssText = '';
       }
-      gridOpen.appendChild(existing);
+      if (isNewServed) {
+        existing.classList.remove('alert-flash');
+        void existing.offsetWidth; // restart animation
+        existing.classList.add('alert-flash');
+      }
+      // Don't reposition card while a confirm dialog is open — avoids disorienting jump
+      if (!existing.dataset.confirming) gridOpen.appendChild(existing);
       return;
     }
 
     const items = order.order_items || [];
     const card  = document.createElement('div');
-    card.className      = `order-card status-${order.status}`;
-    card.dataset.id     = order.id;
-    card.dataset.status = order.status;
+    card.className       = `order-card status-${order.status}`;
+    card.dataset.id      = order.id;
+    card.dataset.status  = order.status;
     card.dataset.tableId = order.table_id;
 
     const itemsHTML = items.length
@@ -763,20 +872,22 @@ function renderOpen(orders) {
       </div>
     `;
 
-    card.querySelector('.btn-close').addEventListener('click', () => confirmClose(order, card));
+    card.querySelector('.btn-close').addEventListener('click', () => confirmClose(order.id, card));
     gridOpen.appendChild(card);
   });
 
-  // Rebuild group headers for tables with multiple orders
+  if (hasNewServed) beep();
+  firstOpenLoad = false;
+
   rebuildGroupHeaders(orders);
 
-  // Stats
-  const openTables = new Set(orders.map(o => o.table_id)).size;
-  const readyCount = orders.filter(o => o.status === 'served').length;
-  const openTotal  = orders.reduce((s, o) => s + (parseFloat(String(o.total_price).replace(/[^\d.]/g,'')) || 0), 0);
+  const openTables  = new Set(orders.map(o => o.table_id)).size;
+  // Count tables waiting for payment, not individual orders
+  const readyTables = new Set(orders.filter(o => o.status === 'served').map(o => o.table_id)).size;
+  const openTotal   = orders.reduce((s, o) => s + (parseFloat(String(o.total_price).replace(/[^\d.]/g,'')) || 0), 0);
 
   statOpen.textContent     = openTables;
-  statReady.textContent    = readyCount;
+  statReady.textContent    = readyTables;
   statOpenTot.textContent  = fmtPrice(openTotal);
   tabOpenCount.textContent = orders.length;
 
@@ -798,7 +909,7 @@ function rebuildGroupHeaders(orders) {
 
     const total = tableOrders.reduce((s, o) => s + (parseFloat(String(o.total_price ?? 0).replace(/[^\d.]/g,'')) || 0), 0);
     const hdr   = document.createElement('div');
-    hdr.className   = 'table-group-header';
+    hdr.className    = 'table-group-header';
     hdr.dataset.group = t;
     hdr.innerHTML = `
       <div>
@@ -807,14 +918,33 @@ function rebuildGroupHeaders(orders) {
       </div>
       <button class="btn-close-all">💳 Tüm Masayı Kapat</button>
     `;
-    hdr.querySelector('.btn-close-all').addEventListener('click', () => confirmCloseAll(t, tableOrders, hdr));
+    // Pass tableId as number; confirmCloseAll reads live orders from openOrdersMap
+    hdr.querySelector('.btn-close-all').addEventListener('click', () => confirmCloseAll(t, hdr));
     gridOpen.insertBefore(hdr, firstCard);
   });
 }
 
-// ── Inline confirmation before closing a single ticket ────────────────────
-function confirmClose(order, card) {
+// ── Inline confirmation — single ticket ───────────────────────────────────
+function confirmClose(orderId, card) {
   if (card.dataset.confirming) return;
+
+  // Block payment of orders not yet served — prevents skipping kitchen
+  if (card.dataset.status === 'pending') {
+    const btn = card.querySelector('.btn-close');
+    const orig = btn.textContent;
+    btn.disabled      = true;
+    btn.textContent   = '⚠ Henüz mutfakta hazır değil!';
+    btn.style.background = 'rgba(239,68,68,.25)';
+    btn.style.color      = 'var(--red)';
+    btn.style.border     = '1px solid rgba(239,68,68,.5)';
+    setTimeout(() => {
+      btn.disabled  = false;
+      btn.textContent = orig;
+      btn.style.cssText = '';
+    }, 2500);
+    return;
+  }
+
   card.dataset.confirming = '1';
   const btn = card.querySelector('.btn-close');
   btn.style.display = 'none';
@@ -830,9 +960,19 @@ function confirmClose(order, card) {
 
   row.querySelector('.btn-cyes').onclick = async () => {
     row.querySelector('.btn-cyes').disabled = true;
+    // Use the freshest order from the live map, not a stale closure
+    const order = openOrdersMap.get(orderId);
     try {
-      await updateDoc(doc(db, 'orders', order.id), { status: 'paid' });
-      printCustomerReceipt(order);
+      await updateDoc(doc(db, 'orders', orderId), { status: 'paid' });
+      if (order && !printCustomerReceipt(order)) {
+        row.querySelector('.confirm-msg').textContent = 'Ödeme kaydedildi — fiş için:';
+        const printBtn = document.createElement('button');
+        printBtn.className   = 'btn-cyes';
+        printBtn.textContent = '🖨 Fiş Yazdır';
+        printBtn.style.marginTop = '0.35rem';
+        printBtn.onclick = () => printCustomerReceipt(order);
+        row.appendChild(printBtn);
+      }
     } catch (err) {
       console.error(err);
       delete card.dataset.confirming;
@@ -848,8 +988,8 @@ function confirmClose(order, card) {
   };
 }
 
-// ── Inline confirmation for Close All Table ───────────────────────────────
-function confirmCloseAll(tableId, tableOrders, hdr) {
+// ── Inline confirmation — close all for one table ─────────────────────────
+function confirmCloseAll(tableId, hdr) {
   if (hdr.dataset.confirming) return;
   hdr.dataset.confirming = '1';
   const btn = hdr.querySelector('.btn-close-all');
@@ -866,9 +1006,25 @@ function confirmCloseAll(tableId, tableOrders, hdr) {
 
   row.querySelector('.btn-cyes').onclick = async () => {
     row.querySelector('.btn-cyes').disabled = true;
+    // Read live orders at click time — avoids race if new order arrived since header built
+    const liveOrders = [...openOrdersMap.values()].filter(o => o.table_id === tableId);
+    if (!liveOrders.length) {
+      delete hdr.dataset.confirming;
+      row.remove();
+      btn.style.display = '';
+      return;
+    }
     try {
-      await Promise.all(tableOrders.map(o => updateDoc(doc(db, 'orders', o.id), { status: 'paid' })));
-      printTableReceipt(tableOrders);
+      await Promise.all(liveOrders.map(o => updateDoc(doc(db, 'orders', o.id), { status: 'paid' })));
+      if (!printTableReceipt(liveOrders)) {
+        row.querySelector('span').textContent = 'Ödeme kaydedildi — fiş için:';
+        const printBtn = document.createElement('button');
+        printBtn.className   = 'btn-cyes';
+        printBtn.textContent = '🖨 Masa Fişi';
+        printBtn.style.marginTop = '0.35rem';
+        printBtn.onclick = () => printTableReceipt(liveOrders);
+        row.appendChild(printBtn);
+      }
     } catch (err) {
       console.error(err);
       delete hdr.dataset.confirming;
@@ -912,11 +1068,12 @@ function printTableReceipt(tableOrders) {
   const refs    = tableOrders.map(o => o.order_number != null ? '#' + String(o.order_number).padStart(3,'0') : '').filter(Boolean).join(', ');
   const total   = tableOrders.reduce((s, o) => s + (parseFloat(String(o.total_price ?? 0).replace(/[^\d.]/g,'')) || 0), 0);
 
-  // Merge same-named items across orders
+  // Merge items by name AND price to avoid wrong line totals if the same item had different prices
   const itemMap = {};
   tableOrders.flatMap(o => o.order_items || []).forEach(it => {
-    if (itemMap[it.name]) itemMap[it.name].quantity += it.quantity;
-    else itemMap[it.name] = { ...it };
+    const key = `${it.name}::${it.price ?? 0}`;
+    if (itemMap[key]) itemMap[key].quantity += it.quantity;
+    else itemMap[key] = { ...it };
   });
   const rows = Object.values(itemMap).map(it => `
     <tr>
@@ -985,7 +1142,10 @@ function renderPaid(orders) {
   const incoming = new Set(orders.map(o => o.id));
 
   gridPaid.querySelectorAll('.paid-card').forEach(card => {
-    if (!incoming.has(card.dataset.id)) card.remove();
+    if (!incoming.has(card.dataset.id)) {
+      card.classList.add('fade-out');
+      card.addEventListener('animationend', () => card.remove(), { once: true });
+    }
   });
 
   let revenue = 0;
@@ -1017,6 +1177,39 @@ function renderPaid(orders) {
   emptyPaid.style.display  = orders.length === 0 ? 'block' : 'none';
 }
 
+// ── Cancelled orders rendering ────────────────────────────────────────────
+function renderCancelled(orders) {
+  const gridCancelled  = document.getElementById('grid-cancelled');
+  const emptyCancelled = document.getElementById('empty-cancelled');
+  const incoming       = new Set(orders.map(o => o.id));
+
+  gridCancelled.querySelectorAll('.cancelled-card').forEach(card => {
+    if (!incoming.has(card.dataset.id)) card.remove();
+  });
+
+  orders.forEach(order => {
+    if (gridCancelled.querySelector(`[data-id="${esc(order.id)}"]`)) return;
+    const items   = order.order_items || [];
+    const summary = items.map(it => `${esc(it.name)} ×${esc(it.quantity)}`).join(', ');
+    const card    = document.createElement('div');
+    card.className  = 'cancelled-card';
+    card.dataset.id = order.id;
+    card.innerHTML  = `
+      <div class="cancelled-table">
+        MASA ${esc(order.table_id)}
+        ${order.order_number != null ? `<span class="cancelled-ref">${esc(padNum(order.order_number))}</span>` : ''}
+      </div>
+      <div class="cancelled-items">${summary || '—'}</div>
+      <div class="cancelled-total">${fmtPrice(order.total_price)}</div>
+      <div class="cancelled-time">${fmtTime(order.timestamp)}</div>
+    `;
+    gridCancelled.appendChild(card);
+  });
+
+  tabCancelledCount.textContent = orders.length;
+  emptyCancelled.style.display  = orders.length === 0 ? 'block' : 'none';
+}
+
 // ── Firestore listeners ───────────────────────────────────────────────────
 setStatus('connecting');
 
@@ -1044,11 +1237,29 @@ onSnapshot(
   ),
   snap => renderPaid(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
   err  => {
-    // Composite index still building — fall back to unfiltered paid query
     console.warn('Paid history index not ready, using fallback:', err.message);
     onSnapshot(
       query(collection(db, 'orders'), where('status', '==', 'paid'), limit(500)),
       snap => renderPaid(snap.docs.map(d => ({ id: d.id, ...d.data() })))
+    );
+  }
+);
+
+// Cancelled orders: today's cancellations, newest first, up to 200 entries
+onSnapshot(
+  query(
+    collection(db, 'orders'),
+    where('status', '==', 'cancelled'),
+    where('timestamp', '>=', Timestamp.fromDate(todayStart)),
+    orderBy('timestamp', 'desc'),
+    limit(200)
+  ),
+  snap => renderCancelled(snap.docs.map(d => ({ id: d.id, ...d.data() }))),
+  err  => {
+    console.warn('Cancelled index not ready, using fallback:', err.message);
+    onSnapshot(
+      query(collection(db, 'orders'), where('status', '==', 'cancelled'), limit(200)),
+      snap => renderCancelled(snap.docs.map(d => ({ id: d.id, ...d.data() })))
     );
   }
 );

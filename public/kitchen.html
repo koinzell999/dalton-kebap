@@ -589,7 +589,7 @@ function renderOrders(orders) {
       </div>
     `;
 
-    card.querySelector('.btn-serve').addEventListener('click', () => markServed(order.id, card, order));
+    card.querySelector('.btn-serve').addEventListener('click', () => markServed(order.id, card));
     card.querySelector('.btn-reject').addEventListener('click', () => confirmReject(order.id, card));
 
     if (isNew && !firstLoad) {
@@ -611,69 +611,6 @@ function renderOrders(orders) {
   } else {
     cntBadge.setAttribute('hidden', '');
   }
-}
-
-// ── Print receipt ────────────────────────────────────────────────────────
-function printReceipt(order) {
-  const win = window.open('', '_blank', 'width=320,height=560');
-  if (!win) return false;
-
-  const timeStr = new Date().toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-  const dateStr = new Date().toLocaleDateString('tr-TR');
-  const rowsHTML = (order.order_items || []).map(it => `
-    <tr>
-      <td style="padding:2mm 0;vertical-align:top">${esc(it.name)}</td>
-      <td style="text-align:center;white-space:nowrap;padding:2mm 3mm">×${esc(it.quantity)}</td>
-      <td style="text-align:right;white-space:nowrap">${fmtPrice((it.price || 0) * (it.quantity || 1))}</td>
-    </tr>`).join('');
-
-  const refStr = order.order_number != null ? '#' + String(order.order_number).padStart(3,'0') : '';
-
-  win.document.write(`<!DOCTYPE html>
-<html lang="tr">
-<head>
-<meta charset="UTF-8">
-<title>Fiş ${esc(refStr)}</title>
-<style>
-  @page { size: 80mm auto; margin: 3mm 4mm; }
-  *     { box-sizing: border-box; margin: 0; padding: 0; }
-  body  { font-family: Arial, sans-serif; font-size: 10pt; width: 72mm; color: #000; }
-  .c    { text-align: center; }
-  .brand{ font-size: 14pt; font-weight: bold; letter-spacing: 2px; }
-  .sub  { font-size: 7pt;  letter-spacing: 3px; color: #333; margin-bottom: 1mm; }
-  hr    { border: none; border-top: 1px dashed #999; margin: 2mm 0; }
-  .ref  { font-size: 20pt; font-weight: bold; text-align: center; margin: 2mm 0; letter-spacing: 2px; }
-  .meta { display: flex; justify-content: space-between; font-size: 8.5pt; margin: 1mm 0; }
-  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
-  td    { vertical-align: top; }
-  .tot  { font-weight: bold; font-size: 12pt; }
-  .foot { text-align: center; font-size: 7pt; color: #555; margin-top: 3mm; }
-</style>
-</head>
-<body>
-<div class="c">
-  <div class="brand">DALTON'S KEBAP</div>
-  <div class="sub">KEBAP · DÖNER</div>
-</div>
-<hr>
-<div class="ref">${esc(refStr)}</div>
-<div class="meta"><span>MASA ${esc(order.table_id)}</span><span>${dateStr} ${timeStr}</span></div>
-<hr>
-<table>${rowsHTML}
-  <tr><td colspan="3"><hr></td></tr>
-  <tr class="tot"><td colspan="2">TOPLAM</td><td style="text-align:right">${fmtPrice(order.total_price)}</td></tr>
-</table>
-<div class="foot">Afiyet olsun! ✦ Dalton's Kebap</div>
-<script>
-  window.onload = function() {
-    window.print();
-    window.onafterprint = function() { window.close(); };
-  };
-<\/script>
-</body>
-</html>`);
-  win.document.close();
-  return true;
 }
 
 // ── Reject / cancel order ────────────────────────────────────────────────
@@ -712,22 +649,16 @@ function confirmReject(orderId, card) {
 }
 
 // ── Mark served ─────────────────────────────────────────────────────────
-async function markServed(orderId, card, order) {
+async function markServed(orderId, card) {
   if (card.dataset.confirming) return;
-  const cardBtns  = card.querySelector('.card-btns');
-  const btnServe  = card.querySelector('.btn-serve');
+  const cardBtns = card.querySelector('.card-btns');
+  const btnServe = card.querySelector('.btn-serve');
   btnServe.disabled    = true;
   btnServe.textContent = '…';
   if (cardBtns) cardBtns.querySelectorAll('button').forEach(b => b.disabled = true);
   try {
     await updateDoc(doc(db, 'orders', orderId), { status: 'served' });
-    const printed = printReceipt(order);
-    if (!printed) {
-      btnServe.disabled    = false;
-      btnServe.textContent = '🖨 Yazdır';
-      btnServe.style.background = 'var(--orange)';
-      btnServe.addEventListener('click', () => { printReceipt(order); }, { once: true });
-    }
+    // onSnapshot removes this card (no longer pending); cashier handles receipt at payment
   } catch (err) {
     console.error(err);
     if (cardBtns) cardBtns.querySelectorAll('button').forEach(b => b.disabled = false);
