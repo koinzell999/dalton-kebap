@@ -819,6 +819,26 @@ function renderOpen(orders) {
         btn.textContent = order.status === 'served' ? '💳 Kapat ve Öde' : 'Kapat';
         btn.style.cssText = '';
       }
+      // Refresh items/total if customer edited the order while it was pending
+      if (!existing.dataset.confirming) {
+        const items   = order.order_items || [];
+        const itemsEl = existing.querySelector('.card-items');
+        if (itemsEl) {
+          itemsEl.innerHTML = items.length
+            ? items.map(it => {
+                const lineTotal = it.price * it.quantity;
+                return `
+                  <div class="item-row">
+                    <span class="item-name">${esc(it.name)}</span>
+                    <span class="item-qty">× ${esc(it.quantity)}</span>
+                    <span class="item-price">${fmtPrice(lineTotal)}</span>
+                  </div>`;
+              }).join('')
+            : '<span style="color:var(--muted);font-size:.85rem">—</span>';
+        }
+        const totalEl = existing.querySelector('.total-amount');
+        if (totalEl) totalEl.textContent = fmtPrice(order.total_price);
+      }
       if (isNewServed) {
         existing.classList.remove('alert-flash');
         void existing.offsetWidth; // restart animation

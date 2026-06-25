@@ -550,6 +550,22 @@ function renderOrders(orders) {
     if (existing) {
       if (tsMs) existing.dataset.ts = tsMs;
       updateElapsed(existing);
+      // Refresh items/total if customer edited the order while it was pending
+      if (!existing.dataset.confirming) {
+        const items   = order.order_items || [];
+        const itemsEl = existing.querySelector('.card-items');
+        if (itemsEl) {
+          itemsEl.innerHTML = items.length
+            ? items.map(it => `
+                <div class="item-row">
+                  <span class="item-name">${esc(it.name)}</span>
+                  <span class="item-qty">× ${esc(it.quantity)}</span>
+                </div>`).join('')
+            : '<span style="color:var(--muted);font-size:.85rem">—</span>';
+        }
+        const totalEl = existing.querySelector('.total');
+        if (totalEl) totalEl.textContent = fmtPrice(order.total_price);
+      }
       return;
     }
 
