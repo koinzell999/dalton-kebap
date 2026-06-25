@@ -425,6 +425,76 @@
       pointer-events: none;
     }
     @keyframes fadeOut { to { opacity: 0; transform: scale(0.97); } }
+
+    /* ── TABLE GROUP HEADER ───────────────────────────── */
+    .table-group-header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      padding: 0.5rem 0.9rem;
+      background: rgba(34,197,94,.06);
+      border: 1px dashed rgba(34,197,94,.25);
+      border-radius: 8px;
+      margin-bottom: -0.25rem;
+    }
+    .table-group-label {
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: 1px;
+    }
+    .table-group-meta {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+    .btn-close-all {
+      background: var(--green);
+      color: #000;
+      border: none;
+      border-radius: 8px;
+      padding: 0.4rem 1rem;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      white-space: nowrap;
+      min-height: 38px;
+      transition: opacity 0.15s;
+    }
+    .btn-close-all:hover:not(:disabled) { opacity: 0.85; }
+    .btn-close-all:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* ── INLINE CONFIRM ROW ───────────────────────────── */
+    .confirm-row {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      padding-top: 0.6rem;
+      border-top: 1px solid var(--border);
+      margin-top: 0.4rem;
+    }
+    .confirm-msg { flex: 1; font-size: 0.82rem; color: var(--muted); }
+    .btn-cyes {
+      background: var(--green); color: #000; border: none;
+      border-radius: 6px; padding: 0.4rem 0.9rem;
+      font-family: 'Oswald', sans-serif; font-size: 0.82rem; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+    }
+    .btn-cyes:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-cno {
+      background: transparent; border: 1px solid var(--muted); color: var(--muted);
+      border-radius: 6px; padding: 0.4rem 0.9rem;
+      font-family: 'Oswald', sans-serif; font-size: 0.82rem;
+      cursor: pointer; white-space: nowrap;
+    }
+    .btn-cno:hover { border-color: var(--text); color: var(--text); }
   </style>
 </head>
 <body>
@@ -587,11 +657,20 @@ function fmtTime(ts) {
 }
 
 function sortOpen(orders) {
+  // Determine which tables have at least one served order (highest priority)
+  const tableHasServed = {};
+  orders.forEach(o => { if (o.status === 'served') tableHasServed[o.table_id] = true; });
+
   return [...orders].sort((a, b) => {
-    // served (ready to pay) first, then by table number
-    if (a.status === 'served' && b.status !== 'served') return -1;
-    if (b.status === 'served' && a.status !== 'served') return  1;
-    return a.table_id - b.table_id;
+    const aReady = !!tableHasServed[a.table_id];
+    const bReady = !!tableHasServed[b.table_id];
+    // Tables with any served order come first
+    if (aReady !== bReady) return aReady ? -1 : 1;
+    // Group same table together
+    if (a.table_id !== b.table_id) return a.table_id - b.table_id;
+    // Within table: served before pending
+    if (a.status !== b.status) return a.status === 'served' ? -1 : 1;
+    return 0;
   });
 }
 
@@ -599,7 +678,7 @@ function sortOpen(orders) {
 function renderOpen(orders) {
   const incoming = new Set(orders.map(o => o.id));
 
-  // Remove stale
+  // Remove stale order cards
   gridOpen.querySelectorAll('.order-card').forEach(card => {
     if (!incoming.has(card.dataset.id)) {
       card.classList.add('fade-out');
@@ -610,23 +689,22 @@ function renderOpen(orders) {
   const sorted = sortOpen(orders);
 
   sorted.forEach(order => {
-    const existing = gridOpen.querySelector(`[data-id="${esc(order.id)}"]`);
+    const existing = gridOpen.querySelector(`.order-card[data-id="${esc(order.id)}"]`);
 
     if (existing) {
-      // Update status class, badge, button text, and dataset
-      existing.className = `order-card status-${order.status}`;
-      existing.dataset.status = order.status; // keep dataset in sync for error recovery
+      existing.className        = `order-card status-${order.status}`;
+      existing.dataset.status   = order.status;
+      existing.dataset.tableId  = order.table_id;
       const badge = existing.querySelector('.status-badge');
       if (badge) {
-        badge.className = `status-badge badge-${order.status}`;
+        badge.className  = `status-badge badge-${order.status}`;
         badge.textContent = order.status === 'served' ? '✓ Hazır' : '⏳ Hazırlanıyor';
       }
       const btn = existing.querySelector('.btn-close');
-      if (btn) {
-        btn.className = `btn-close ${order.status}`;
+      if (btn && !existing.dataset.confirming) {
+        btn.className  = `btn-close ${order.status}`;
         btn.textContent = order.status === 'served' ? '💳 Kapat ve Öde' : 'Kapat';
       }
-      // Keep DOM in sorted order
       gridOpen.appendChild(existing);
       return;
     }
@@ -636,6 +714,7 @@ function renderOpen(orders) {
     card.className      = `order-card status-${order.status}`;
     card.dataset.id     = order.id;
     card.dataset.status = order.status;
+    card.dataset.tableId = order.table_id;
 
     const itemsHTML = items.length
       ? items.map(it => {
@@ -673,21 +752,221 @@ function renderOpen(orders) {
       </div>
     `;
 
-    card.querySelector('.btn-close').addEventListener('click', () => closeTicket(order.id, card));
+    card.querySelector('.btn-close').addEventListener('click', () => confirmClose(order, card));
     gridOpen.appendChild(card);
   });
+
+  // Rebuild group headers for tables with multiple orders
+  rebuildGroupHeaders(orders);
 
   // Stats
   const openTables = new Set(orders.map(o => o.table_id)).size;
   const readyCount = orders.filter(o => o.status === 'served').length;
   const openTotal  = orders.reduce((s, o) => s + (parseFloat(String(o.total_price).replace(/[^\d.]/g,'')) || 0), 0);
 
-  statOpen.textContent    = openTables;
-  statReady.textContent   = readyCount;
-  statOpenTot.textContent = fmtPrice(openTotal);
+  statOpen.textContent     = openTables;
+  statReady.textContent    = readyCount;
+  statOpenTot.textContent  = fmtPrice(openTotal);
   tabOpenCount.textContent = orders.length;
 
   emptyOpen.style.display = orders.length === 0 ? 'block' : 'none';
+}
+
+// ── Group headers for tables with >1 open order ───────────────────────────
+function rebuildGroupHeaders(orders) {
+  gridOpen.querySelectorAll('.table-group-header').forEach(h => h.remove());
+
+  const byTable = {};
+  orders.forEach(o => { (byTable[o.table_id] = byTable[o.table_id] || []).push(o); });
+
+  Object.entries(byTable).forEach(([tableId, tableOrders]) => {
+    if (tableOrders.length <= 1) return;
+    const t         = +tableId;
+    const firstCard = gridOpen.querySelector(`.order-card[data-table-id="${t}"]`);
+    if (!firstCard) return;
+
+    const total = tableOrders.reduce((s, o) => s + (parseFloat(String(o.total_price ?? 0).replace(/[^\d.]/g,'')) || 0), 0);
+    const hdr   = document.createElement('div');
+    hdr.className   = 'table-group-header';
+    hdr.dataset.group = t;
+    hdr.innerHTML = `
+      <div>
+        <span class="table-group-label">MASA ${esc(t)}</span>
+        <span class="table-group-meta"> — ${tableOrders.length} sipariş · ${fmtPrice(total)}</span>
+      </div>
+      <button class="btn-close-all">💳 Tüm Masayı Kapat</button>
+    `;
+    hdr.querySelector('.btn-close-all').addEventListener('click', () => confirmCloseAll(t, tableOrders, hdr));
+    gridOpen.insertBefore(hdr, firstCard);
+  });
+}
+
+// ── Inline confirmation before closing a single ticket ────────────────────
+function confirmClose(order, card) {
+  if (card.dataset.confirming) return;
+  card.dataset.confirming = '1';
+  const btn = card.querySelector('.btn-close');
+  btn.style.display = 'none';
+
+  const row = document.createElement('div');
+  row.className = 'confirm-row';
+  row.innerHTML = `
+    <span class="confirm-msg">Ödeme alındı mı?</span>
+    <button class="btn-cyes">✓ Evet, Öde</button>
+    <button class="btn-cno">İptal</button>
+  `;
+  card.querySelector('.card-foot').appendChild(row);
+
+  row.querySelector('.btn-cyes').onclick = async () => {
+    row.querySelector('.btn-cyes').disabled = true;
+    try {
+      await updateDoc(doc(db, 'orders', order.id), { status: 'paid' });
+      printCustomerReceipt(order);
+    } catch (err) {
+      console.error(err);
+      delete card.dataset.confirming;
+      row.remove();
+      btn.style.display = '';
+    }
+  };
+
+  row.querySelector('.btn-cno').onclick = () => {
+    delete card.dataset.confirming;
+    row.remove();
+    btn.style.display = '';
+  };
+}
+
+// ── Inline confirmation for Close All Table ───────────────────────────────
+function confirmCloseAll(tableId, tableOrders, hdr) {
+  if (hdr.dataset.confirming) return;
+  hdr.dataset.confirming = '1';
+  const btn = hdr.querySelector('.btn-close-all');
+  btn.style.display = 'none';
+
+  const row = document.createElement('div');
+  row.style.cssText = 'display:flex;align-items:center;gap:.5rem;flex-wrap:wrap;';
+  row.innerHTML = `
+    <span style="flex:1;font-size:.82rem;color:var(--muted)">Tüm masayı kapat?</span>
+    <button class="btn-cyes">✓ Evet</button>
+    <button class="btn-cno">İptal</button>
+  `;
+  hdr.appendChild(row);
+
+  row.querySelector('.btn-cyes').onclick = async () => {
+    row.querySelector('.btn-cyes').disabled = true;
+    try {
+      await Promise.all(tableOrders.map(o => updateDoc(doc(db, 'orders', o.id), { status: 'paid' })));
+      printTableReceipt(tableOrders);
+    } catch (err) {
+      console.error(err);
+      delete hdr.dataset.confirming;
+      row.remove();
+      btn.style.display = '';
+    }
+  };
+
+  row.querySelector('.btn-cno').onclick = () => {
+    delete hdr.dataset.confirming;
+    row.remove();
+    btn.style.display = '';
+  };
+}
+
+// ── Print single-order customer receipt ───────────────────────────────────
+function printCustomerReceipt(order) {
+  const win = window.open('', '_blank', 'width=320,height=560');
+  if (!win) return false;
+  const now     = new Date();
+  const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = now.toLocaleDateString('tr-TR');
+  const refStr  = order.order_number != null ? '#' + String(order.order_number).padStart(3,'0') : '';
+  const rows = (order.order_items || []).map(it => `
+    <tr>
+      <td style="padding:2mm 0;vertical-align:top">${esc(it.name)}</td>
+      <td style="text-align:center;white-space:nowrap;padding:2mm 3mm">×${esc(it.quantity)}</td>
+      <td style="text-align:right;white-space:nowrap">${fmtPrice((it.price||0)*(it.quantity||1))}</td>
+    </tr>`).join('');
+  win.document.write(receiptHTML({ tableId: order.table_id, refs: refStr, rows, total: fmtPrice(order.total_price), dateStr, timeStr, label: 'ÖDEME FİŞİ' }));
+  win.document.close();
+  return true;
+}
+
+// ── Print combined receipt for whole table ────────────────────────────────
+function printTableReceipt(tableOrders) {
+  if (!tableOrders.length) return false;
+  const win = window.open('', '_blank', 'width=320,height=640');
+  if (!win) return false;
+  const tableId = tableOrders[0].table_id;
+  const refs    = tableOrders.map(o => o.order_number != null ? '#' + String(o.order_number).padStart(3,'0') : '').filter(Boolean).join(', ');
+  const total   = tableOrders.reduce((s, o) => s + (parseFloat(String(o.total_price ?? 0).replace(/[^\d.]/g,'')) || 0), 0);
+
+  // Merge same-named items across orders
+  const itemMap = {};
+  tableOrders.flatMap(o => o.order_items || []).forEach(it => {
+    if (itemMap[it.name]) itemMap[it.name].quantity += it.quantity;
+    else itemMap[it.name] = { ...it };
+  });
+  const rows = Object.values(itemMap).map(it => `
+    <tr>
+      <td style="padding:2mm 0;vertical-align:top">${esc(it.name)}</td>
+      <td style="text-align:center;white-space:nowrap;padding:2mm 3mm">×${esc(it.quantity)}</td>
+      <td style="text-align:right;white-space:nowrap">${fmtPrice((it.price||0)*(it.quantity||1))}</td>
+    </tr>`).join('');
+
+  const now     = new Date();
+  const timeStr = now.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+  const dateStr = now.toLocaleDateString('tr-TR');
+  win.document.write(receiptHTML({ tableId, refs, rows, total: fmtPrice(total), dateStr, timeStr, label: 'MASA FİŞİ' }));
+  win.document.close();
+  return true;
+}
+
+// ── Shared receipt HTML template ──────────────────────────────────────────
+function receiptHTML({ tableId, refs, rows, total, dateStr, timeStr, label }) {
+  return `<!DOCTYPE html>
+<html lang="tr"><head>
+<meta charset="UTF-8">
+<title>${esc(label)} — Dalton's Kebap</title>
+<style>
+  @page { size: 80mm auto; margin: 3mm 4mm; }
+  *     { box-sizing: border-box; margin: 0; padding: 0; }
+  body  { font-family: Arial, sans-serif; font-size: 10pt; width: 72mm; color: #000; }
+  .c    { text-align: center; }
+  .brand{ font-size: 14pt; font-weight: bold; letter-spacing: 2px; }
+  .sub  { font-size: 7pt; letter-spacing: 3px; color: #333; margin-bottom: 1mm; }
+  .lbl  { font-size: 8pt; letter-spacing: 2px; color: #555; margin: 1mm 0 2mm; }
+  hr    { border: none; border-top: 1px dashed #999; margin: 2mm 0; }
+  .meta { display: flex; justify-content: space-between; font-size: 8.5pt; margin: 1mm 0; }
+  .refs { font-size: 8pt; color: #555; margin: 1mm 0; }
+  table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+  td    { vertical-align: top; }
+  .tot  { font-weight: bold; font-size: 12pt; }
+  .foot { text-align: center; font-size: 7pt; color: #555; margin-top: 3mm; }
+</style>
+</head>
+<body>
+<div class="c">
+  <div class="brand">DALTON'S KEBAP</div>
+  <div class="sub">KEBAP · DÖNER</div>
+  <div class="lbl">${esc(label)}</div>
+</div>
+<hr>
+<div class="meta"><span>MASA ${esc(tableId)}</span><span>${esc(dateStr)} ${esc(timeStr)}</span></div>
+${refs ? `<div class="refs">${esc(refs)}</div>` : ''}
+<hr>
+<table>${rows}
+  <tr><td colspan="3"><hr></td></tr>
+  <tr class="tot"><td colspan="2">TOPLAM</td><td style="text-align:right">${esc(total)}</td></tr>
+</table>
+<div class="foot">Teşekkürler! ✦ Dalton's Kebap</div>
+<script>
+  window.onload = function() {
+    window.print();
+    window.onafterprint = function() { window.close(); };
+  };
+<\/script>
+</body></html>`;
 }
 
 // ── Paid history rendering ────────────────────────────────────────────────
@@ -725,22 +1004,6 @@ function renderPaid(orders) {
   statRevenue.textContent  = fmtPrice(revenue);
   tabPaidCount.textContent = orders.length;
   emptyPaid.style.display  = orders.length === 0 ? 'block' : 'none';
-}
-
-// ── Close ticket ─────────────────────────────────────────────────────────
-async function closeTicket(orderId, card) {
-  const btn = card.querySelector('.btn-close');
-  btn.disabled    = true;
-  btn.textContent = '…';
-  try {
-    await updateDoc(doc(db, 'orders', orderId), { status: 'paid' });
-    // card removed automatically by the onSnapshot listener
-  } catch (err) {
-    console.error(err);
-    btn.disabled    = false;
-    // Read from dataset.status (kept in sync by renderOpen)
-    btn.textContent = card.dataset.status === 'served' ? '💳 Kapat ve Öde' : 'Kapat';
-  }
 }
 
 // ── Firestore listeners ───────────────────────────────────────────────────

@@ -1,8 +1,10 @@
 import React from 'react';
 
 export default function OrderStatus({ orderState, tableNumber, orderNumber, editTimeLeft, onEdit, onNewOrder, t, isRTL }) {
-  const isServed = orderState === 'served';
-  const canEdit  = !isServed && editTimeLeft != null && editTimeLeft > 0;
+  const isServed    = orderState === 'served';
+  const isCancelled = orderState === 'cancelled';
+  const isWaiting   = orderState === 'waiting';
+  const canEdit     = isWaiting && editTimeLeft != null && editTimeLeft > 0;
 
   function fmtCountdown(secs) {
     const m = Math.floor(secs / 60);
@@ -12,32 +14,31 @@ export default function OrderStatus({ orderState, tableNumber, orderNumber, edit
       .replace('{s}', String(s).padStart(2, '0'));
   }
 
+  const icon  = isCancelled ? '❌' : isServed ? '🎉' : '🍽️';
+  const title = isCancelled ? t('orderCancelledTitle') : isServed ? t('orderServedTitle') : t('orderReceivedTitle');
+  const msg   = isCancelled ? t('orderCancelledMsg')   : isServed ? t('orderServedMsg')   : t('orderReceivedMsg');
+
   return (
     <div className="order-status-overlay" dir={isRTL ? 'rtl' : 'ltr'}>
-      <div className="order-status-card">
-        <div className="order-status-icon">{isServed ? '🎉' : '🍽️'}</div>
+      <div className={`order-status-card${isCancelled ? ' order-status-cancelled' : ''}`}>
+        <div className="order-status-icon">{icon}</div>
 
-        {orderNumber != null && (
+        {orderNumber != null && !isCancelled && (
           <div className="order-status-number">
             #{String(orderNumber).padStart(3, '0')}
           </div>
         )}
 
-        <h2 className="order-status-title">
-          {isServed ? t('orderServedTitle') : t('orderReceivedTitle')}
-        </h2>
+        <h2 className="order-status-title">{title}</h2>
+        <p className="order-status-msg">{msg}</p>
 
-        <p className="order-status-msg">
-          {isServed ? t('orderServedMsg') : t('orderReceivedMsg')}
-        </p>
-
-        {tableNumber && (
+        {tableNumber && !isCancelled && (
           <div className="order-status-table">
             {t('table')} {tableNumber}
           </div>
         )}
 
-        {!isServed && <div className="order-spinner" />}
+        {isWaiting && <div className="order-spinner" />}
 
         {canEdit && (
           <button type="button" className="btn order-edit-btn" onClick={onEdit}>
@@ -46,11 +47,11 @@ export default function OrderStatus({ orderState, tableNumber, orderNumber, edit
           </button>
         )}
 
-        {!isServed && editTimeLeft === 0 && (
+        {isWaiting && editTimeLeft === 0 && (
           <p className="order-edit-closed">{t('editWindowClosed')}</p>
         )}
 
-        {isServed && (
+        {(isServed || isCancelled) && (
           <button type="button" className="btn btn-primary" onClick={onNewOrder}>
             {t('newOrder')}
           </button>

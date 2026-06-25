@@ -130,6 +130,8 @@ export const translations = {
     editWindowRemaining: "Düzenleme: {m}dk {s}sn kaldı",
     editWindowClosed: "Düzenleme süresi doldu",
     cooldownWarning: "Lütfen {sec} saniye bekleyin",
+    orderCancelledTitle: "Sipariş İptal Edildi",
+    orderCancelledMsg: "Üzgünüz, siparişiniz mutfak tarafından iptal edildi. Yeniden sipariş verebilirsiniz.",
   },
   en: {
     // Public menu
@@ -260,6 +262,8 @@ export const translations = {
     editWindowRemaining: "Edit closes in {m}m {s}s",
     editWindowClosed: "Edit window closed",
     cooldownWarning: "Please wait {sec} seconds",
+    orderCancelledTitle: "Order Cancelled",
+    orderCancelledMsg: "Sorry, your order was cancelled by the kitchen. You can place a new order.",
   },
   ar: {
     // Public menu
@@ -390,6 +394,8 @@ export const translations = {
     editWindowRemaining: "التعديل ينتهي خلال {m}د {s}ث",
     editWindowClosed: "انتهى وقت التعديل",
     cooldownWarning: "يرجى الانتظار {sec} ثانية",
+    orderCancelledTitle: "تم إلغاء الطلب",
+    orderCancelledMsg: "نأسف، تم إلغاء طلبك من قبل المطبخ. يمكنك تقديم طلب جديد.",
   },
 };
 

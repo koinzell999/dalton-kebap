@@ -438,6 +438,15 @@ export default function App() {
         setOrderState('waiting');
       } else if (status === 'served') {
         setOrderState('served');
+      } else if (status === 'cancelled') {
+        // Kitchen rejected — clear order but keep table so customer can re-order immediately
+        clearActiveOrder();
+        clearOrderCooldown();
+        setOrderId(null);
+        setOrderNumber(null);
+        setOrderPlacedAt(null);
+        setOrderState('cancelled');
+        setCooldownLeft(0);
       } else if (status === 'paid') {
         clearActiveOrder();
         clearTableSession();
