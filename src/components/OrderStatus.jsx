@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function OrderStatus({ orderState, tableNumber, orderNumber, editTimeLeft, onEdit, onNewOrder, t, isRTL }) {
+export default function OrderStatus({ orderState, tableNumber, orderNumber, editTimeLeft, onEdit, onNewOrder, cancelReason, t, isRTL }) {
   const isServed    = orderState === 'served';
   const isCancelled = orderState === 'cancelled';
   const isWaiting   = orderState === 'waiting';
@@ -31,6 +31,12 @@ export default function OrderStatus({ orderState, tableNumber, orderNumber, edit
 
         <h2 className="order-status-title">{title}</h2>
         <p className="order-status-msg">{msg}</p>
+
+        {isCancelled && cancelReason && (
+          <p className="order-cancel-reason">
+            <strong>{t('orderCancelReason')}</strong> {cancelReason}
+          </p>
+        )}
 
         {tableNumber && !isCancelled && (
           <div className="order-status-table">

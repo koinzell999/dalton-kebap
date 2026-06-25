@@ -11,6 +11,8 @@ export default function Cart({
   isSubmitting,
   orderError = null,
   isEditing = false,
+  notes = '',
+  onNotesChange,
   t,
   isRTL,
 }) {
@@ -63,6 +65,19 @@ export default function Cart({
                   </div>
                 </div>
               ))}
+            </div>
+
+            <div className="cart-notes-section">
+              <label className="cart-notes-label">{t('orderNotes')}</label>
+              <textarea
+                className="cart-notes-input"
+                value={notes}
+                onChange={(e) => onNotesChange && onNotesChange(e.target.value)}
+                placeholder={t('orderNotesPlaceholder')}
+                maxLength={200}
+                rows={2}
+                dir={isRTL ? 'rtl' : 'ltr'}
+              />
             </div>
 
             <div className="cart-footer">

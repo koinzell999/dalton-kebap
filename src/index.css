@@ -1062,6 +1062,24 @@ body {
   white-space: nowrap;
 }
 
+.waiter-btn {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.4);
+  color: #22c55e;
+  border-radius: 20px;
+  padding: 0 0.9rem;
+  font-size: 1rem;
+  min-height: 44px;
+  min-width: 44px;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+  -webkit-tap-highlight-color: transparent;
+}
+.waiter-btn:hover:not(:disabled) { background: rgba(34, 197, 94, 0.22); }
+.waiter-btn:disabled { opacity: 0.6; cursor: default; }
+.waiter-btn-called { background: rgba(34, 197, 94, 0.22); border-color: #22c55e; }
+
 .cart-btn {
   position: relative;
   background: var(--c-orange);
@@ -1428,4 +1446,42 @@ body {
 
 .order-status-cancelled .order-status-title {
   color: #fca5a5;
+}
+
+.order-cancel-reason {
+  font-size: 0.85rem;
+  color: #fca5a5;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  border-radius: 8px;
+  padding: 8px 14px;
+  margin-top: 0.5rem;
+  text-align: center;
+}
+
+/* ── Cart notes ── */
+.cart-notes-section {
+  padding: 10px 16px 0;
+}
+.cart-notes-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--c-muted);
+  margin-bottom: 6px;
+}
+.cart-notes-input {
+  width: 100%;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: var(--c-text);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.88rem;
+  padding: 8px 12px;
+  resize: none;
+  box-sizing: border-box;
+}
+.cart-notes-input:focus {
+  outline: none;
+  border-color: var(--c-orange);
 }

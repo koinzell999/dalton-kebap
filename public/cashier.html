@@ -557,6 +557,16 @@
     }
     .btn-cno:hover { border-color: var(--text); color: var(--text); }
 
+    .card-notes {
+      margin: 0 1rem 0.6rem;
+      background: rgba(245,158,11,.08);
+      border-left: 3px solid var(--orange);
+      border-radius: 0 6px 6px 0;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.8rem;
+      color: var(--orange);
+    }
+
     @media (max-width: 360px) {
       .confirm-row { flex-direction: column; align-items: stretch; }
       .btn-cyes, .btn-cno { width: 100%; text-align: center; }
@@ -838,6 +848,17 @@ function renderOpen(orders) {
         }
         const totalEl = existing.querySelector('.total-amount');
         if (totalEl) totalEl.textContent = fmtPrice(order.total_price);
+        let notesEl = existing.querySelector('.card-notes');
+        if (order.notes) {
+          if (!notesEl) {
+            notesEl = document.createElement('div');
+            notesEl.className = 'card-notes';
+            existing.querySelector('.card-foot').before(notesEl);
+          }
+          notesEl.textContent = '📝 ' + order.notes;
+        } else if (notesEl) {
+          notesEl.remove();
+        }
       }
       if (isNewServed) {
         existing.classList.remove('alert-flash');
@@ -881,6 +902,7 @@ function renderOpen(orders) {
         </div>
       </div>
       <div class="card-items">${itemsHTML}</div>
+      ${order.notes ? `<div class="card-notes">📝 ${esc(order.notes)}</div>` : ''}
       <div class="card-foot">
         <div class="total-col">
           <span class="total-label">Toplam</span>

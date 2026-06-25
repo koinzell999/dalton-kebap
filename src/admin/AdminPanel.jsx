@@ -1,10 +1,10 @@
 import React from 'react';
 import { signOut, reauthenticateWithCredential, EmailAuthProvider } from 'firebase/auth';
 import {
-  collection, getDocs, query, orderBy,
-  addDoc, updateDoc, deleteDoc, doc,
+  collection, getDocs, query, orderBy, where,
+  addDoc, updateDoc, deleteDoc, doc, onSnapshot, Timestamp,
 } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { auth, db, storage } from '../firebase';
 import { useLanguage, localize, formatPrice } from '../i18n';
 import { useInactivityLogout } from './useInactivityLogout';
@@ -20,6 +20,7 @@ const C = {
   text: '#fef3e2',
   muted: '#c4956a',
   danger: '#c0392b',
+  green: '#22c55e',
   inputBg: '#2a1608',
 };
 
@@ -129,6 +130,11 @@ function ItemFormModal({ categoryId, item, onSave, onClose, t }) {
     e.preventDefault();
     if (!name.trim() || !price.trim()) {
       setError(t('nameAndPriceRequired'));
+      return;
+    }
+    const priceNum = parseFloat(price.trim().replace(',', '.'));
+    if (isNaN(priceNum) || priceNum <= 0) {
+      setError(t('invalidPrice'));
       return;
     }
     setError('');
@@ -427,6 +433,9 @@ export default function AdminPanel({ user, onInactivityLogout }) {
   const [confirmBusy, setConfirmBusy] = React.useState(false);
   const [adminSearch, setAdminSearch] = React.useState('');
   const [lightboxSrc, setLightboxSrc] = React.useState(null);
+  const [adminTab, setAdminTab] = React.useState('menu');
+  const [todayOrders, setTodayOrders] = React.useState([]);
+  const [todayOrdersLoading, setTodayOrdersLoading] = React.useState(false);
 
   // ── FETCH ──────────────────────────────────────────────
   async function fetchCategories() {
@@ -443,6 +452,24 @@ export default function AdminPanel({ user, onInactivityLogout }) {
   }
 
   React.useEffect(() => { fetchCategories(); }, []);
+
+  // ── Today's paid orders ────────────────────────────────
+  React.useEffect(() => {
+    if (adminTab !== 'orders') return;
+    setTodayOrdersLoading(true);
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const q = query(
+      collection(db, 'orders'),
+      where('status', '==', 'paid'),
+      where('timestamp', '>=', Timestamp.fromDate(todayStart)),
+      orderBy('timestamp', 'desc')
+    );
+    const unsub = onSnapshot(q,
+      snap => { setTodayOrders(snap.docs.map(d => ({ id: d.id, ...d.data() }))); setTodayOrdersLoading(false); },
+      () => setTodayOrdersLoading(false)
+    );
+    return unsub;
+  }, [adminTab]);
 
   React.useEffect(() => {
     if (!lightboxSrc) return;
@@ -474,6 +501,38 @@ export default function AdminPanel({ user, onInactivityLogout }) {
     await fetchCategories();
   }
 
+  // ── STORAGE CLEANUP ────────────────────────────────────
+  async function deleteStorageImage(imageUrl) {
+    if (!imageUrl || !imageUrl.includes('firebasestorage.googleapis.com')) return;
+    try { await deleteObject(ref(storage, imageUrl)); } catch {}
+  }
+
+  // ── AVAILABLE TOGGLE ───────────────────────────────────
+  async function handleToggleAvailable(categoryId, item) {
+    const cat = categoriesRef.current.find((c) => c.id === categoryId);
+    if (!cat) return;
+    const nowAvailable = item.available !== false;
+    const newItems = cat.items.map((i) =>
+      i.id === item.id ? { ...i, available: !nowAvailable } : i
+    );
+    await updateDoc(doc(db, 'categories', categoryId), { items: newItems });
+    await fetchCategories();
+  }
+
+  // ── ITEM REORDER ───────────────────────────────────────
+  async function handleMoveItem(categoryId, itemId, direction) {
+    const cat = categoriesRef.current.find((c) => c.id === categoryId);
+    if (!cat) return;
+    const idx = cat.items.findIndex((i) => i.id === itemId);
+    if (idx < 0) return;
+    const newIdx = direction === 'up' ? idx - 1 : idx + 1;
+    if (newIdx < 0 || newIdx >= cat.items.length) return;
+    const newItems = [...cat.items];
+    [newItems[idx], newItems[newIdx]] = [newItems[newIdx], newItems[idx]];
+    await updateDoc(doc(db, 'categories', categoryId), { items: newItems });
+    await fetchCategories();
+  }
+
   // ── CONFIRM HANDLER ────────────────────────────────────
   async function handleConfirm() {
     if (!confirmModal) return;
@@ -481,10 +540,14 @@ export default function AdminPanel({ user, onInactivityLogout }) {
     try {
       const { type, categoryId, itemId } = confirmModal;
       if (type === 'deleteCategory') {
+        const cat = categoriesRef.current.find((c) => c.id === categoryId);
+        if (cat) await Promise.all((cat.items || []).map(i => deleteStorageImage(i.imageUrl)));
         await deleteDoc(doc(db, 'categories', categoryId));
       } else if (type === 'deleteItem') {
         const cat = categoriesRef.current.find((c) => c.id === categoryId);
         if (cat) {
+          const item = cat.items.find((i) => i.id === itemId);
+          if (item) await deleteStorageImage(item.imageUrl);
           await updateDoc(doc(db, 'categories', categoryId), {
             items: cat.items.filter((i) => i.id !== itemId),
           });
@@ -562,175 +625,190 @@ export default function AdminPanel({ user, onInactivityLogout }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <LangSwitcher lang={lang} setLang={setLang} />
           <a href="/" style={{ color: C.muted, fontSize: '13px', textDecoration: 'none' }}>{t('backToMenu')}</a>
-          <a href="/kitchen" target="_blank" rel="noopener noreferrer" style={{
+          <a href="/kitchen.html" target="_blank" rel="noopener noreferrer" style={{
             padding: '7px 13px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
             background: 'rgba(245,158,11,.15)', color: C.orange,
             border: `1px solid rgba(245,158,11,.35)`, textDecoration: 'none',
             whiteSpace: 'nowrap',
           }}>🔥 Mutfak</a>
-          <a href="/cashier" target="_blank" rel="noopener noreferrer" style={{
+          <a href="/cashier.html" target="_blank" rel="noopener noreferrer" style={{
             padding: '7px 13px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
             background: 'rgba(34,197,94,.12)', color: '#22c55e',
             border: '1px solid rgba(34,197,94,.3)', textDecoration: 'none',
             whiteSpace: 'nowrap',
           }}>💵 Kasiyer</a>
+          <a href="/waiter.html" target="_blank" rel="noopener noreferrer" style={{
+            padding: '7px 13px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
+            background: 'rgba(99,102,241,.12)', color: '#818cf8',
+            border: '1px solid rgba(99,102,241,.3)', textDecoration: 'none',
+            whiteSpace: 'nowrap',
+          }}>🛎 Garson</a>
           <button onClick={() => signOut(auth)} style={secondaryBtn}>{t('adminLogout')}</button>
         </div>
       </header>
 
+      {/* ── TABS ── */}
+      <div style={{ background: C.card, borderBottom: `1px solid ${C.border}`, display: 'flex', gap: '4px', padding: '0 24px' }}>
+        {[['menu', t('menuManagement')], ['orders', t('todayOrders')]].map(([tab, label]) => (
+          <button key={tab} onClick={() => setAdminTab(tab)} style={{
+            background: 'transparent', border: 'none', borderBottom: adminTab === tab ? `2px solid ${C.orange}` : '2px solid transparent',
+            color: adminTab === tab ? C.orange : C.muted, padding: '12px 16px', cursor: 'pointer',
+            fontSize: '14px', fontWeight: adminTab === tab ? '700' : '400', fontFamily: 'Roboto, sans-serif',
+          }}>{label}</button>
+        ))}
+      </div>
+
       {/* ── MAIN CONTENT ── */}
       <main style={{ maxWidth: '960px', margin: '0 auto', padding: '32px 16px 64px' }}>
 
-        {/* Top bar */}
+        {/* Top bar — menu tab only */}
+        {adminTab === 'menu' && (
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '28px' }}>
           <h2 style={{ margin: 0, fontSize: '20px', color: C.text }}>{t('menuManagement')}</h2>
           <button onClick={() => setCatModal('new')} style={primaryBtn}>+ {t('addCategory')}</button>
         </div>
-
-        {/* Search */}
-        <div style={{ marginBottom: '20px' }}>
-          <input
-            type="search"
-            placeholder={t('searchAdmin')}
-            value={adminSearch}
-            onChange={(e) => setAdminSearch(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '11px 16px',
-              background: C.inputBg,
-              border: `1px solid ${adminSearch.trim() ? C.orange : C.border}`,
-              borderRadius: '10px',
-              color: C.text,
-              fontSize: '15px',
-              boxSizing: 'border-box',
-              outline: 'none',
-              fontFamily: 'Roboto, sans-serif',
-              transition: 'border-color 0.2s',
-            }}
-            onFocus={(e) => { e.target.style.borderColor = C.orange; }}
-            onBlur={(e) => { e.target.style.borderColor = adminSearch.trim() ? C.orange : C.border; }}
-          />
-        </div>
-
-        {loading && (
-          <div style={{ textAlign: 'center', padding: '60px', color: C.muted }}>{t('loading')}</div>
         )}
-        {fetchError && <div style={{ ...errorBox, marginBottom: '24px' }}>{fetchError}</div>}
 
-        {/* Categories */}
-        {displayCategories.map((cat) => (
-          <div key={cat.id} style={{
-            background: C.card, border: `1px solid ${C.border}`,
-            borderRadius: '12px', marginBottom: '20px', overflow: 'hidden',
-          }}>
-            {/* Category header */}
-            <div style={{
-              background: C.cardAlt, padding: '14px 20px',
-              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              borderBottom: `1px solid ${C.border}`,
-            }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <span style={{ color: C.yellow, fontWeight: '700', fontSize: '15px' }}>{localize(cat, 'title', lang)}</span>
-                <span style={{ background: C.bg, color: C.muted, fontSize: '11px', padding: '2px 8px', borderRadius: '20px' }}>
-                  {t('order')}: {cat.order}
-                </span>
-                <span style={{ background: C.bg, color: C.muted, fontSize: '11px', padding: '2px 8px', borderRadius: '20px' }}>
-                  {cat.items?.length || 0} {t('itemCount')}
-                </span>
+        {/* Orders tab */}
+        {adminTab === 'orders' && (() => {
+          const revenue = todayOrders.reduce((s, o) => s + (parseFloat(String(o.total_price).replace(/[^\d.]/g,'')) || 0), 0);
+          return (
+            <div>
+              <div style={{ display: 'flex', gap: '16px', marginBottom: '24px', flexWrap: 'wrap' }}>
+                {[
+                  [t('todaysRevenue'), `${revenue.toLocaleString('tr-TR')} ₺`, C.green],
+                  [t('ordersCount'), todayOrders.length, C.orange],
+                ].map(([label, val, color]) => (
+                  <div key={label} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '10px', padding: '16px 24px', minWidth: '140px' }}>
+                    <div style={{ color: C.muted, fontSize: '11px', marginBottom: '4px' }}>{label}</div>
+                    <div style={{ color, fontSize: '22px', fontWeight: '700' }}>{val}</div>
+                  </div>
+                ))}
               </div>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <button onClick={() => setCatModal(cat)} style={editBtn}>{t('edit')}</button>
-                <button
-                  onClick={() => setConfirmModal({ type: 'deleteCategory', categoryId: cat.id, message: t('deleteConfirmCategory') })}
-                  style={dangerBtn}
-                >
-                  {t('delete')}
+              {todayOrdersLoading && <div style={{ color: C.muted, textAlign: 'center', padding: '40px' }}>{t('loading')}</div>}
+              {!todayOrdersLoading && todayOrders.length === 0 && (
+                <div style={{ color: C.muted, textAlign: 'center', padding: '60px 20px', fontSize: '15px' }}>{t('noOrdersToday')}</div>
+              )}
+              {todayOrders.map(o => {
+                const ts = o.timestamp?.toDate?.();
+                const timeStr = ts ? ts.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' }) : '—';
+                return (
+                  <div key={o.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '10px', padding: '14px 18px', marginBottom: '10px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                      <span style={{ color: C.yellow, fontWeight: '700', fontSize: '14px' }}>
+                        Masa {o.table_id} {o.order_number != null ? `· #${String(o.order_number).padStart(3,'0')}` : ''}
+                      </span>
+                      <span style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                        <span style={{ color: C.muted, fontSize: '12px' }}>{timeStr}</span>
+                        <span style={{ color: C.orange, fontWeight: '700', fontSize: '14px' }}>{parseFloat(String(o.total_price).replace(/[^\d.]/g,'')).toLocaleString('tr-TR')} ₺</span>
+                      </span>
+                    </div>
+                    <div style={{ color: C.muted, fontSize: '12px' }}>
+                      {(o.order_items || []).map(it => `${it.name} ×${it.quantity}`).join(' · ')}
+                    </div>
+                    {o.notes && <div style={{ marginTop: '4px', color: C.orange, fontSize: '11px' }}>📝 {o.notes}</div>}
+                  </div>
+                );
+              })}
+            </div>
+          );
+        })()}
+
+        {/* Menu tab */}
+        {adminTab === 'menu' && <>
+          <div style={{ marginBottom: '20px' }}>
+            <input
+              type="search"
+              placeholder={t('searchAdmin')}
+              value={adminSearch}
+              onChange={(e) => setAdminSearch(e.target.value)}
+              style={{
+                width: '100%', padding: '11px 16px', background: C.inputBg,
+                border: `1px solid ${adminSearch.trim() ? C.orange : C.border}`,
+                borderRadius: '10px', color: C.text, fontSize: '15px', boxSizing: 'border-box',
+                outline: 'none', fontFamily: 'Roboto, sans-serif', transition: 'border-color 0.2s',
+              }}
+              onFocus={(e) => { e.target.style.borderColor = C.orange; }}
+              onBlur={(e) => { e.target.style.borderColor = adminSearch.trim() ? C.orange : C.border; }}
+            />
+          </div>
+
+          {loading && <div style={{ textAlign: 'center', padding: '60px', color: C.muted }}>{t('loading')}</div>}
+          {fetchError && <div style={{ ...errorBox, marginBottom: '24px' }}>{fetchError}</div>}
+
+          {displayCategories.map((cat) => (
+            <div key={cat.id} style={{ background: C.card, border: `1px solid ${C.border}`, borderRadius: '12px', marginBottom: '20px', overflow: 'hidden' }}>
+              <div style={{ background: C.cardAlt, padding: '14px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${C.border}` }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ color: C.yellow, fontWeight: '700', fontSize: '15px' }}>{localize(cat, 'title', lang)}</span>
+                  <span style={{ background: C.bg, color: C.muted, fontSize: '11px', padding: '2px 8px', borderRadius: '20px' }}>{t('order')}: {cat.order}</span>
+                  <span style={{ background: C.bg, color: C.muted, fontSize: '11px', padding: '2px 8px', borderRadius: '20px' }}>{cat.items?.length || 0} {t('itemCount')}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button onClick={() => setCatModal(cat)} style={editBtn}>{t('edit')}</button>
+                  <button onClick={() => setConfirmModal({ type: 'deleteCategory', categoryId: cat.id, message: t('deleteConfirmCategory') })} style={dangerBtn}>{t('delete')}</button>
+                </div>
+              </div>
+
+              <div style={{ padding: '8px 20px 16px' }}>
+                {(cat.items || []).length === 0 && <p style={{ color: C.muted, fontSize: '13px', margin: '12px 0 8px 0' }}>{t('noItemsYet')}</p>}
+
+                {(cat.items || []).map((item, idx) => {
+                  const isUnavailable = item.available === false;
+                  return (
+                    <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '10px 0', borderBottom: `1px solid ${C.border}`, opacity: isUnavailable ? 0.55 : 1 }}>
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} style={{ width: '48px', height: '48px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in', filter: isUnavailable ? 'grayscale(1)' : 'none' }}
+                          onError={(e) => { e.target.style.display = 'none'; }} onClick={() => setLightboxSrc(item.imageUrl)} title={t('zoomImage')} />
+                      ) : (
+                        <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: C.cardAlt, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: '22px' }}>🍖</div>
+                      )}
+
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ color: isUnavailable ? C.muted : C.text, fontWeight: '600', fontSize: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          {localize(item, 'name', lang)}
+                          {isUnavailable && <span style={{ background: 'rgba(239,68,68,.15)', color: '#ef4444', fontSize: '10px', padding: '1px 6px', borderRadius: '4px', fontWeight: '700' }}>{t('itemUnavailable')}</span>}
+                        </div>
+                        {item.description && <div style={{ color: C.muted, fontSize: '12px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.description}</div>}
+                      </div>
+
+                      <div style={{ color: C.orange, fontWeight: '700', fontSize: '13px', whiteSpace: 'nowrap' }}>{formatPrice(item.price)}</div>
+
+                      <div style={{ display: 'flex', gap: '4px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                        <button onClick={() => handleMoveItem(cat.id, item.id, 'up')} disabled={idx === 0} style={{ ...editBtn, padding: '4px 7px', opacity: idx === 0 ? 0.3 : 1 }} title="Yukarı taşı">↑</button>
+                        <button onClick={() => handleMoveItem(cat.id, item.id, 'down')} disabled={idx === (cat.items || []).length - 1} style={{ ...editBtn, padding: '4px 7px', opacity: idx === (cat.items || []).length - 1 ? 0.3 : 1 }} title="Aşağı taşı">↓</button>
+                        <button onClick={() => handleToggleAvailable(cat.id, item)} style={isUnavailable ? { ...editBtn, color: '#22c55e', borderColor: '#22c55e' } : { ...dangerBtn, color: '#f59e0b', borderColor: '#f59e0b' }}>
+                          {isUnavailable ? t('markAvailable') : t('markUnavailable')}
+                        </button>
+                        <button onClick={() => setItemModal({ categoryId: cat.id, item })} style={editBtn}>{t('edit')}</button>
+                        <button onClick={() => setConfirmModal({ type: 'deleteItem', categoryId: cat.id, itemId: item.id, message: t('deleteConfirmItem') })} style={dangerBtn}>{t('delete')}</button>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                <button onClick={() => setItemModal({ categoryId: cat.id })} style={{ marginTop: '12px', padding: '8px 16px', width: '100%', background: 'transparent', border: `1px dashed ${C.border}`, borderRadius: '8px', color: C.muted, cursor: 'pointer', fontSize: '13px', fontFamily: 'Roboto, sans-serif' }}>
+                  + {t('addItem')}
                 </button>
               </div>
             </div>
+          ))}
 
-            {/* Items list */}
-            <div style={{ padding: '8px 20px 16px' }}>
-              {(cat.items || []).length === 0 && (
-                <p style={{ color: C.muted, fontSize: '13px', margin: '12px 0 8px 0' }}>{t('noItemsYet')}</p>
-              )}
-
-              {(cat.items || []).map((item) => (
-                <div key={item.id} style={{
-                  display: 'flex', alignItems: 'center', gap: '14px',
-                  padding: '10px 0', borderBottom: `1px solid ${C.border}`,
-                }}>
-                  {item.imageUrl ? (
-                    <img
-                      src={item.imageUrl}
-                      alt={item.name}
-                      style={{ width: '52px', height: '52px', borderRadius: '8px', objectFit: 'cover', flexShrink: 0, cursor: 'zoom-in' }}
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                      onClick={() => setLightboxSrc(item.imageUrl)}
-                      title={t('zoomImage')}
-                    />
-                  ) : (
-                    <div style={{
-                      width: '52px', height: '52px', borderRadius: '8px',
-                      background: C.cardAlt, display: 'flex', alignItems: 'center',
-                      justifyContent: 'center', flexShrink: 0, fontSize: '24px',
-                    }}>🍖</div>
-                  )}
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div style={{ color: C.text, fontWeight: '600', fontSize: '14px' }}>{localize(item, 'name', lang)}</div>
-                    {item.description && (
-                      <div style={{ color: C.muted, fontSize: '12px', marginTop: '2px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.description}
-                      </div>
-                    )}
-                  </div>
-
-                  <div style={{ color: C.orange, fontWeight: '700', fontSize: '14px', whiteSpace: 'nowrap', marginRight: '8px' }}>
-                    {formatPrice(item.price)}
-                  </div>
-
-                  <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
-                    <button onClick={() => setItemModal({ categoryId: cat.id, item })} style={editBtn}>{t('edit')}</button>
-                    <button
-                      onClick={() => setConfirmModal({ type: 'deleteItem', categoryId: cat.id, itemId: item.id, message: t('deleteConfirmItem') })}
-                      style={dangerBtn}
-                    >
-                      {t('delete')}
-                    </button>
-                  </div>
-                </div>
-              ))}
-
-              <button
-                onClick={() => setItemModal({ categoryId: cat.id })}
-                style={{
-                  marginTop: '12px', padding: '8px 16px', width: '100%',
-                  background: 'transparent', border: `1px dashed ${C.border}`,
-                  borderRadius: '8px', color: C.muted, cursor: 'pointer',
-                  fontSize: '13px', fontFamily: 'Roboto, sans-serif',
-                }}
-              >
-                + {t('addItem')}
-              </button>
+          {!loading && categories.length > 0 && displayCategories.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '60px 20px', color: C.muted }}>
+              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</div>
+              <p style={{ margin: 0, color: C.text, fontSize: '15px' }}>{t('noResults')}</p>
             </div>
-          </div>
-        ))}
+          )}
 
-        {!loading && categories.length > 0 && displayCategories.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '60px 20px', color: C.muted }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔍</div>
-            <p style={{ margin: 0, color: C.text, fontSize: '15px' }}>{t('noResults')}</p>
-          </div>
-        )}
-
-        {!loading && categories.length === 0 && !fetchError && (
-          <div style={{ textAlign: 'center', padding: '80px 20px', color: C.muted }}>
-            <div style={{ fontSize: '40px', marginBottom: '16px' }}>🍽️</div>
-            <p style={{ fontSize: '16px', margin: '0 0 8px 0', color: C.text }}>{t('noCategoriesYet')}</p>
-            <p style={{ fontSize: '14px', margin: 0 }}>{t('noCategoriesHint')}</p>
-          </div>
-        )}
+          {!loading && categories.length === 0 && !fetchError && (
+            <div style={{ textAlign: 'center', padding: '80px 20px', color: C.muted }}>
+              <div style={{ fontSize: '40px', marginBottom: '16px' }}>🍽️</div>
+              <p style={{ fontSize: '16px', margin: '0 0 8px 0', color: C.text }}>{t('noCategoriesYet')}</p>
+              <p style={{ fontSize: '14px', margin: 0 }}>{t('noCategoriesHint')}</p>
+            </div>
+          )}
+        </>}
       </main>
 
       {/* ── MODALS ── */}

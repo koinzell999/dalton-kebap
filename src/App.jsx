@@ -4,7 +4,7 @@ import SearchBar from './components/SearchBar';
 import CategoryTabs from './components/CategoryTabs';
 import ItemModal from './components/ItemModal';
 import { db } from './firebase';
-import { collection, getDocs, query, orderBy, where, addDoc, doc, getDoc, onSnapshot, serverTimestamp, runTransaction, updateDoc } from 'firebase/firestore';
+import { collection, getDocs, query, orderBy, where, addDoc, doc, getDoc, onSnapshot, serverTimestamp, runTransaction, updateDoc, deleteDoc } from 'firebase/firestore';
 import { useLanguage, localize, parsePriceNum } from './i18n';
 import Cart from './components/Cart';
 import OrderStatus from './components/OrderStatus';
@@ -77,23 +77,20 @@ export default function App() {
   const [showFavorites, setShowFavorites] = React.useState(false);
 
   React.useEffect(() => {
-    async function fetchMenu() {
-      try {
-        const q = query(collection(db, "categories"), orderBy("order", "asc"));
-        const querySnapshot = await getDocs(q);
-        const categories = querySnapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setMenuData(categories);
-      } catch (err) {
+    const q = query(collection(db, 'categories'), orderBy('order', 'asc'));
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        setMenuData(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+        setLoading(false);
+      },
+      (err) => {
         setError(t('loadError'));
         console.error(err);
-      } finally {
         setLoading(false);
       }
-    }
-    fetchMenu();
+    );
+    return unsub;
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -108,6 +105,7 @@ export default function App() {
       .map((cat) => ({
         ...cat,
         items: cat.items.filter((it) => {
+          if (it.available === false) return false;
           const haystack = [it.name, it.name_en, it.name_ar, it.description, it.description_en, it.description_ar]
             .filter(Boolean).join(' ').toLowerCase();
           const matchesQuery = haystack.includes(searchQuery.toLowerCase());
@@ -138,6 +136,9 @@ export default function App() {
   const [orderState, setOrderState] = React.useState(() => _savedOrder?.id ? 'waiting' : 'idle');
   const [editTimeLeft, setEditTimeLeft] = React.useState(null);
   const [cooldownLeft, setCooldownLeft] = React.useState(() => getCooldownRemaining());
+  const [notes, setNotes] = React.useState('');
+  const [cancelReason, setCancelReason] = React.useState(null);
+  const [waiterCallState, setWaiterCallState] = React.useState('idle'); // 'idle' | 'calling' | 'called'
 
   React.useEffect(() => {
     const sections = Array.from(document.querySelectorAll('.menu-section'));
@@ -345,6 +346,7 @@ export default function App() {
           quantity: item.quantity,
         })),
         total_price: total,
+        ...(notes.trim() ? { notes: notes.trim() } : {}),
         status: 'pending',
         timestamp: serverTimestamp(),
       });
@@ -355,6 +357,7 @@ export default function App() {
       setOrderPlacedAt(now);
       setOrderState('waiting');
       setCart([]);
+      setNotes('');
       setShowCart(false);
     } catch (err) {
       console.error('Order failed:', err);
@@ -399,9 +402,11 @@ export default function App() {
           quantity: item.quantity,
         })),
         total_price: total,
+        notes: notes.trim() || '',
       });
       setIsEditing(false);
       setCart([]);
+      setNotes('');
       setShowCart(false);
     } catch (err) {
       console.error('Edit failed:', err);
@@ -420,6 +425,24 @@ export default function App() {
     setOrderState('idle');
     setIsEditing(false);
     setCooldownLeft(0);
+    setCancelReason(null);
+    setNotes('');
+  }
+
+  async function callWaiter() {
+    if (!tableNumber || waiterCallState !== 'idle') return;
+    setWaiterCallState('calling');
+    try {
+      await addDoc(collection(db, 'waiter_calls'), {
+        table_id: tableNumber,
+        timestamp: serverTimestamp(),
+      });
+      setWaiterCallState('called');
+      setTimeout(() => setWaiterCallState('idle'), 5 * 60 * 1000);
+    } catch (err) {
+      console.error(err);
+      setWaiterCallState('idle');
+    }
   }
 
   // ── Real-time order status listener ──
@@ -440,6 +463,7 @@ export default function App() {
         setOrderState('served');
       } else if (status === 'cancelled') {
         // Kitchen rejected — clear order but keep table so customer can re-order immediately
+        setCancelReason(snap.data().cancel_reason || null);
         clearActiveOrder();
         clearOrderCooldown();
         setOrderId(null);
@@ -501,6 +525,17 @@ export default function App() {
           <div className="header-actions">
             {tableNumber && (
               <span className="table-chip">{t('table')} {tableNumber}</span>
+            )}
+            {tableNumber && (
+              <button
+                type="button"
+                className={`waiter-btn${waiterCallState === 'called' ? ' waiter-btn-called' : ''}`}
+                onClick={callWaiter}
+                disabled={waiterCallState !== 'idle'}
+                title={waiterCallState === 'called' ? t('waiterCalled') : t('callWaiter')}
+              >
+                🔔{waiterCallState === 'called' ? ' ✓' : ''}
+              </button>
             )}
             <button
               type="button"
@@ -636,6 +671,8 @@ export default function App() {
             isSubmitting={isSubmitting}
             orderError={orderError}
             isEditing={isEditing}
+            notes={notes}
+            onNotesChange={setNotes}
             t={t}
             isRTL={isRTL}
           />
@@ -649,6 +686,7 @@ export default function App() {
             editTimeLeft={editTimeLeft}
             onEdit={startEdit}
             onNewOrder={handleNewOrder}
+            cancelReason={cancelReason}
             t={t}
             isRTL={isRTL}
           />

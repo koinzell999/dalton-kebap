@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Garson — Dalton's Kebap</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@600;700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:     #06080f;
+      --card:   #0c1018;
+      --border: #1a2235;
+      --blue:   #818cf8;
+      --yellow: #fcd34d;
+      --orange: #f59e0b;
+      --text:   #e8effe;
+      --muted:  #6a7fa8;
+      --green:  #22c55e;
+      --red:    #ef4444;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Open Sans', sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── PIN GATE ──────────────────────────── */
+    .pin-gate {
+      position: fixed; inset: 0;
+      background: #030508;
+      display: flex; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    .pin-card {
+      background: #0c1018; border: 2px solid var(--blue); border-radius: 16px;
+      padding: 2.5rem 2rem; width: min(340px, 90vw); text-align: center;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .pin-card h2 { font-family: 'Oswald', sans-serif; font-size: 1.35rem; color: var(--blue); letter-spacing: 1px; }
+    .pin-card p  { color: var(--muted); font-size: 0.88rem; }
+    .pin-input {
+      background: #06080f; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-size: 1.2rem; padding: 0.65rem 1rem; text-align: center;
+      letter-spacing: 4px; width: 100%; font-family: 'Open Sans', sans-serif;
+    }
+    .pin-input:focus { outline: 2px solid var(--blue); border-color: transparent; }
+    .pin-btn {
+      background: var(--blue); color: #000; border: none; border-radius: 8px;
+      font-family: 'Oswald', sans-serif; font-weight: 700; font-size: 1rem;
+      letter-spacing: 1px; padding: 0.7rem; cursor: pointer; transition: opacity 0.15s;
+    }
+    .pin-btn:hover { opacity: 0.88; }
+    .pin-error { color: var(--red); font-size: 0.82rem; min-height: 1.2em; }
+
+    /* ── HEADER ──────────────────────────── */
+    .header {
+      background: #09090f; border-bottom: 2px solid var(--blue);
+      padding: 0.75rem 1.25rem; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 0.75rem;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .header-brand { font-family: 'Oswald', sans-serif; font-size: 1.25rem; font-weight: 700; color: var(--blue); letter-spacing: 2px; }
+    .status-row   { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8rem; color: var(--muted); }
+    .status-dot   { width: 8px; height: 8px; border-radius: 50%; background: #555; flex-shrink: 0; transition: background 0.3s; }
+    .status-dot.connected    { background: var(--green); box-shadow: 0 0 6px var(--green); }
+    .status-dot.connecting   { background: var(--yellow); animation: blink 1s ease-in-out infinite; }
+    .status-dot.disconnected { background: var(--red); }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    /* ── SECTIONS ──────────────────────────── */
+    .main { padding: 1.25rem; max-width: 960px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem; }
+
+    .section-title {
+      font-family: 'Oswald', sans-serif; font-size: 1rem; font-weight: 700;
+      letter-spacing: 1.5px; color: var(--muted); margin-bottom: 0.75rem;
+      text-transform: uppercase;
+    }
+
+    /* ── CALL CARDS ──────────────────────────── */
+    .calls-grid { display: flex; flex-direction: column; gap: 0.75rem; }
+    .call-card {
+      background: var(--card); border: 1.5px solid var(--blue);
+      border-radius: 12px; padding: 1rem 1.25rem;
+      display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+      animation: slideIn 0.3s ease;
+      box-shadow: 0 0 18px rgba(129,140,248,.2);
+    }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+
+    .call-table { font-family: 'Oswald', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--yellow); letter-spacing: 1px; }
+    .call-time  { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .btn-ack {
+      background: var(--green); color: #fff; border: none; border-radius: 8px;
+      padding: 0.55rem 1.1rem; font-family: 'Oswald', sans-serif; font-weight: 700;
+      font-size: 0.88rem; letter-spacing: 0.5px; cursor: pointer;
+      transition: background 0.15s; min-height: 44px; white-space: nowrap;
+    }
+    .btn-ack:hover    { background: #16a34a; }
+    .btn-ack:disabled { background: #3a3a3a; cursor: not-allowed; }
+
+    .no-calls { color: var(--muted); font-size: 0.9rem; padding: 1rem 0; }
+
+    /* ── TABLE GRID ──────────────────────────── */
+    .tables-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.75rem;
+    }
+    .table-tile {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 10px; padding: 0.85rem 0.5rem; text-align: center;
+      transition: border-color 0.2s;
+    }
+    .table-tile.pending { border-color: var(--orange); box-shadow: 0 0 10px rgba(245,158,11,.2); }
+    .table-tile.served  { border-color: var(--green);  box-shadow: 0 0 10px rgba(34,197,94,.2); }
+    .table-tile.free    { border-color: var(--border); opacity: 0.5; }
+    .tile-num   { font-family: 'Oswald', sans-serif; font-size: 1.3rem; font-weight: 700; color: var(--text); }
+    .tile-badge { font-size: 0.7rem; margin-top: 4px; font-weight: 600; letter-spacing: 0.5px; }
+    .table-tile.pending .tile-badge { color: var(--orange); }
+    .table-tile.served  .tile-badge { color: var(--green); }
+    .table-tile.free    .tile-badge { color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<!-- PIN gate -->
+<div id="pin-gate" class="pin-gate">
+  <div class="pin-card">
+    <h2>🛎 GARSON PANELİ</h2>
+    <p>Erişmek için PIN girin</p>
+    <input type="password" id="pin-input" class="pin-input" maxlength="10" placeholder="••••" autocomplete="off">
+    <button id="pin-btn" class="pin-btn">Giriş</button>
+    <p id="pin-error" class="pin-error"></p>
+  </div>
+</div>
+
+<div id="app" hidden>
+  <header class="header">
+    <div class="header-brand">🛎 GARSON PANELİ</div>
+    <div class="status-row">
+      <span id="status-dot" class="status-dot connecting"></span>
+      <span id="status-text">Bağlanıyor...</span>
+    </div>
+  </header>
+
+  <main class="main">
+    <section>
+      <div class="section-title">📣 Garson Çağrıları</div>
+      <div id="calls-grid" class="calls-grid">
+        <p class="no-calls">Çağrı yok</p>
+      </div>
+    </section>
+
+    <section>
+      <div class="section-title">🍽 Masa Durumu</div>
+      <div id="tables-grid" class="tables-grid"></div>
+    </section>
+  </main>
+</div>
+
+<!-- PIN check -->
+<script>
+  var WAITER_PIN = '130791';
+  var PIN_SESSION_KEY = 'dk:waiter-pin';
+
+  function escHtml(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+  }
+  window.escHtml = escHtml;
+
+  if (sessionStorage.getItem(PIN_SESSION_KEY) === '1') {
+    document.getElementById('pin-gate').style.display = 'none';
+    document.getElementById('app').removeAttribute('hidden');
+  }
+
+  document.getElementById('pin-btn').addEventListener('click', function() {
+    var val = document.getElementById('pin-input').value;
+    if (val === WAITER_PIN) {
+      sessionStorage.setItem(PIN_SESSION_KEY, '1');
+      document.getElementById('pin-gate').style.display = 'none';
+      document.getElementById('app').removeAttribute('hidden');
+    } else {
+      document.getElementById('pin-error').textContent = 'Yanlış PIN, tekrar deneyin.';
+      document.getElementById('pin-input').value = '';
+      document.getElementById('pin-input').focus();
+    }
+  });
+
+  document.getElementById('pin-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') document.getElementById('pin-btn').click();
+  });
+</script>
+
+<script type="module">
+import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getFirestore, collection, query, where, onSnapshot, deleteDoc, doc }
+  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
+
+const app = initializeApp({
+  apiKey:            "AIzaSyA9G07B7flKHBzFSe_QtaF6lBcOuVDLREQ",
+  authDomain:        "dalton-kebap.firebaseapp.com",
+  projectId:         "dalton-kebap",
+  storageBucket:     "dalton-kebap.firebasestorage.app",
+  messagingSenderId: "633937883385",
+  appId:             "1:633937883385:web:a22dc3081a17c96ea9b228"
+});
+const db = getFirestore(app);
+
+const esc         = window.escHtml;
+const callsGrid   = document.getElementById('calls-grid');
+const tablesGrid  = document.getElementById('tables-grid');
+const statusDot   = document.getElementById('status-dot');
+const statusText  = document.getElementById('status-text');
+
+const TABLE_COUNT = 13;
+
+// Table status map: tableId → 'free' | 'pending' | 'served'
+const tableStatus = {};
+for (let i = 1; i <= TABLE_COUNT; i++) tableStatus[i] = 'free';
+
+function setStatus(s) {
+  statusDot.className = 'status-dot ' + s;
+  statusText.textContent = { connected: 'Bağlı', connecting: 'Bağlanıyor…', disconnected: 'Bağlantı kesildi' }[s] || s;
+}
+
+function fmtTime(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+}
+
+// ── Render waiter calls ──────────────────────────────────────────────────
+function renderCalls(calls) {
+  if (calls.length === 0) {
+    callsGrid.innerHTML = '<p class="no-calls">Çağrı yok</p>';
+    return;
+  }
+  callsGrid.innerHTML = '';
+  calls.sort((a, b) => {
+    const ta = a.timestamp ? a.timestamp.toMillis() : 0;
+    const tb = b.timestamp ? b.timestamp.toMillis() : 0;
+    return ta - tb;
+  });
+  calls.forEach(call => {
+    const card = document.createElement('div');
+    card.className = 'call-card';
+    card.innerHTML = `
+      <div>
+        <div class="call-table">🛎 MASA ${esc(call.table_id)}</div>
+        <div class="call-time">${fmtTime(call.timestamp)}</div>
+      </div>
+      <button class="btn-ack">✓ Anlaşıldı</button>
+    `;
+    card.querySelector('.btn-ack').onclick = async (e) => {
+      e.target.disabled = true;
+      try { await deleteDoc(doc(db, 'waiter_calls', call.id)); }
+      catch (err) { console.error(err); e.target.disabled = false; }
+    };
+    callsGrid.appendChild(card);
+  });
+}
+
+// ── Render table status grid ─────────────────────────────────────────────
+function renderTables() {
+  tablesGrid.innerHTML = '';
+  for (let i = 1; i <= TABLE_COUNT; i++) {
+    const st = tableStatus[i] || 'free';
+    const tile = document.createElement('div');
+    tile.className = `table-tile ${st}`;
+    const label = { pending: 'Bekliyor', served: 'Hazır', free: 'Boş' }[st];
+    tile.innerHTML = `<div class="tile-num">${i}</div><div class="tile-badge">${label}</div>`;
+    tablesGrid.appendChild(tile);
+  }
+}
+
+// ── Firestore: waiter calls ──────────────────────────────────────────────
+setStatus('connecting');
+onSnapshot(
+  collection(db, 'waiter_calls'),
+  snap => {
+    setStatus('connected');
+    renderCalls(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  },
+  err => { console.error(err); setStatus('disconnected'); }
+);
+
+// ── Firestore: open orders (for table status) ────────────────────────────
+onSnapshot(
+  query(collection(db, 'orders'), where('status', 'in', ['pending', 'served'])),
+  snap => {
+    for (let i = 1; i <= TABLE_COUNT; i++) tableStatus[i] = 'free';
+    snap.docs.forEach(d => {
+      const o = d.data();
+      const tid = o.table_id;
+      if (!tid || tid < 1 || tid > TABLE_COUNT) return;
+      // served wins over pending for display
+      if (o.status === 'served' || tableStatus[tid] === 'free') {
+        tableStatus[tid] = o.status;
+      }
+    });
+    renderTables();
+  },
+  err => { console.error(err); }
+);
+</script>
+</body>
+</html>

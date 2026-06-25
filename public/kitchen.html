@@ -370,6 +370,55 @@
       cursor: pointer; white-space: nowrap;
     }
     .btn-cno:hover { border-color: var(--yellow); color: var(--yellow); }
+
+    .card-notes {
+      margin: 0 1rem 0.6rem;
+      background: rgba(245,158,11,.08);
+      border-left: 3px solid var(--orange);
+      border-radius: 0 6px 6px 0;
+      padding: 0.45rem 0.65rem;
+      font-size: 0.8rem;
+      color: var(--orange);
+    }
+
+    .reject-reasons {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      padding-top: 0.6rem;
+      margin-top: 0.5rem;
+      border-top: 1px solid var(--border);
+    }
+    .reject-reasons-title { font-size: 0.78rem; color: var(--muted); margin-bottom: 0.15rem; }
+    .reject-reason-btns { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+    .btn-reason {
+      background: rgba(239,68,68,.12);
+      border: 1px solid var(--red);
+      color: var(--red);
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.78rem;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.15s;
+    }
+    .btn-reason:hover    { background: rgba(239,68,68,.28); }
+    .btn-reason:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-reason-back {
+      background: transparent;
+      border: 1px solid var(--muted);
+      color: var(--muted);
+      border-radius: 6px;
+      padding: 0.35rem 0.7rem;
+      font-family: 'Oswald', sans-serif;
+      font-size: 0.78rem;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .btn-reason-back:hover { border-color: var(--yellow); color: var(--yellow); }
   </style>
 </head>
 <body>
@@ -550,7 +599,7 @@ function renderOrders(orders) {
     if (existing) {
       if (tsMs) existing.dataset.ts = tsMs;
       updateElapsed(existing);
-      // Refresh items/total if customer edited the order while it was pending
+      // Refresh items/total/notes if customer edited the order while it was pending
       if (!existing.dataset.confirming) {
         const items   = order.order_items || [];
         const itemsEl = existing.querySelector('.card-items');
@@ -565,6 +614,17 @@ function renderOrders(orders) {
         }
         const totalEl = existing.querySelector('.total');
         if (totalEl) totalEl.textContent = fmtPrice(order.total_price);
+        let notesEl = existing.querySelector('.card-notes');
+        if (order.notes) {
+          if (!notesEl) {
+            notesEl = document.createElement('div');
+            notesEl.className = 'card-notes';
+            existing.querySelector('.card-foot').before(notesEl);
+          }
+          notesEl.textContent = '📝 ' + order.notes;
+        } else if (notesEl) {
+          notesEl.remove();
+        }
       }
       return;
     }
@@ -596,6 +656,7 @@ function renderOrders(orders) {
         </div>
       </div>
       <div class="card-items">${itemsHTML}</div>
+      ${order.notes ? `<div class="card-notes">📝 ${esc(order.notes)}</div>` : ''}
       <div class="card-foot">
         <div class="total">${fmtPrice(order.total_price)}</div>
         <div class="card-btns">
@@ -630,36 +691,45 @@ function renderOrders(orders) {
 }
 
 // ── Reject / cancel order ────────────────────────────────────────────────
+const CANCEL_REASONS = ['Tükendi', 'Mutfak meşgul', 'Hata ile girildi'];
+
 function confirmReject(orderId, card) {
   if (card.dataset.confirming) return;
   card.dataset.confirming = '1';
   card.querySelector('.card-btns').style.display = 'none';
 
-  const row = document.createElement('div');
-  row.className = 'confirm-row';
-  row.innerHTML = `
-    <span class="confirm-msg">Siparişi iptal et?</span>
-    <button class="btn-cyes">✓ Evet, İptal</button>
-    <button class="btn-cno">← Geri</button>
+  const section = document.createElement('div');
+  section.className = 'reject-reasons';
+  section.innerHTML = `
+    <span class="reject-reasons-title">İptal sebebi seçin:</span>
+    <div class="reject-reason-btns">
+      ${CANCEL_REASONS.map(r => `<button class="btn-reason" data-reason="${esc(r)}">${esc(r)}</button>`).join('')}
+      <button class="btn-reason-back">← Geri</button>
+    </div>
   `;
-  card.querySelector('.card-foot').appendChild(row);
+  card.querySelector('.card-foot').appendChild(section);
 
-  row.querySelector('.btn-cyes').onclick = async () => {
-    row.querySelector('.btn-cyes').disabled = true;
-    try {
-      await updateDoc(doc(db, 'orders', orderId), { status: 'cancelled' });
-      // card will be removed by onSnapshot (no longer pending)
-    } catch (err) {
-      console.error(err);
-      delete card.dataset.confirming;
-      row.remove();
-      card.querySelector('.card-btns').style.display = '';
-    }
-  };
+  section.querySelectorAll('.btn-reason').forEach(btn => {
+    btn.onclick = async () => {
+      section.querySelectorAll('button').forEach(b => b.disabled = true);
+      try {
+        await updateDoc(doc(db, 'orders', orderId), {
+          status: 'cancelled',
+          cancel_reason: btn.dataset.reason,
+        });
+        // card removed by onSnapshot
+      } catch (err) {
+        console.error(err);
+        delete card.dataset.confirming;
+        section.remove();
+        card.querySelector('.card-btns').style.display = '';
+      }
+    };
+  });
 
-  row.querySelector('.btn-cno').onclick = () => {
+  section.querySelector('.btn-reason-back').onclick = () => {
     delete card.dataset.confirming;
-    row.remove();
+    section.remove();
     card.querySelector('.card-btns').style.display = '';
   };
 }
