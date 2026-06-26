@@ -14,9 +14,13 @@
       "**/node_modules/**"
     ],
     "rewrites": [
-      { "source": "/kitchen", "destination": "/kitchen.html" },
-      { "source": "/cashier", "destination": "/cashier.html" },
-      { "source": "**",       "destination": "/index.html" }
+      { "source": "/kitchen",      "destination": "/kitchen.html" },
+      { "source": "/kitchen.html", "destination": "/kitchen.html" },
+      { "source": "/cashier",      "destination": "/cashier.html" },
+      { "source": "/cashier.html", "destination": "/cashier.html" },
+      { "source": "/waiter",       "destination": "/waiter.html" },
+      { "source": "/waiter.html",  "destination": "/waiter.html" },
+      { "source": "**",            "destination": "/index.html" }
     ]
   }
 }

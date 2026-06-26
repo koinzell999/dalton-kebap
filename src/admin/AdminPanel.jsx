@@ -625,19 +625,19 @@ export default function AdminPanel({ user, onInactivityLogout }) {
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <LangSwitcher lang={lang} setLang={setLang} />
           <a href="/" style={{ color: C.muted, fontSize: '13px', textDecoration: 'none' }}>{t('backToMenu')}</a>
-          <a href="/kitchen.html" target="_blank" rel="noopener noreferrer" style={{
+          <a href="/kitchen" target="_blank" rel="noopener noreferrer" style={{
             padding: '7px 13px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
             background: 'rgba(245,158,11,.15)', color: C.orange,
             border: `1px solid rgba(245,158,11,.35)`, textDecoration: 'none',
             whiteSpace: 'nowrap',
           }}>🔥 Mutfak</a>
-          <a href="/cashier.html" target="_blank" rel="noopener noreferrer" style={{
+          <a href="/cashier" target="_blank" rel="noopener noreferrer" style={{
             padding: '7px 13px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
             background: 'rgba(34,197,94,.12)', color: '#22c55e',
             border: '1px solid rgba(34,197,94,.3)', textDecoration: 'none',
             whiteSpace: 'nowrap',
           }}>💵 Kasiyer</a>
-          <a href="/waiter.html" target="_blank" rel="noopener noreferrer" style={{
+          <a href="/waiter" target="_blank" rel="noopener noreferrer" style={{
             padding: '7px 13px', borderRadius: '8px', fontSize: '13px', fontWeight: '700',
             background: 'rgba(99,102,241,.12)', color: '#818cf8',
             border: '1px solid rgba(99,102,241,.3)', textDecoration: 'none',
