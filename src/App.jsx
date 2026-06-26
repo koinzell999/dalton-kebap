@@ -23,9 +23,18 @@ function loadActiveOrder()  {
   } catch { return null; }
 }
 
+// Business-date string (local time): hours 00–08 belong to the previous calendar day
+// so order numbers don't reset at midnight while the restaurant is still open (closes 04:00).
+function getBusinessDate() {
+  const now = new Date();
+  const d   = new Date(now);
+  if (now.getHours() < 9) d.setDate(d.getDate() - 1);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+}
+
 // Daily sequential reference number via Firestore transaction
 async function getNextOrderNumber(db) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getBusinessDate();
   const counterRef = doc(db, 'counters', 'daily');
   try {
     return await runTransaction(db, async (tx) => {

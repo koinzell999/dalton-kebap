@@ -457,7 +457,7 @@ export default function AdminPanel({ user, onInactivityLogout }) {
   React.useEffect(() => {
     if (adminTab !== 'orders') return;
     setTodayOrdersLoading(true);
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayStart = (() => { const s = new Date(); if (s.getHours() < 9) s.setDate(s.getDate() - 1); s.setHours(9, 0, 0, 0); return s; })();
     const q = query(
       collection(db, 'orders'),
       where('status', '==', 'paid'),

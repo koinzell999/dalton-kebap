@@ -684,11 +684,13 @@
     if (e.key === 'Enter') document.getElementById('pin-btn').click();
   });
 
-  // Reload at midnight so todayStart stays accurate across overnight shifts
-  (function scheduleMidnightReload() {
-    var now = new Date();
-    var midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5);
-    setTimeout(function() { window.location.reload(); }, midnight - now);
+  // Reload at 04:30 — half-hour after the restaurant closes (04:00).
+  // Avoids disrupting service (old midnight reload fired while tables were still open).
+  (function scheduleCloseReload() {
+    var now    = new Date();
+    var reload = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 4, 30, 0);
+    if (now >= reload) reload.setDate(reload.getDate() + 1); // already past today's 04:30
+    setTimeout(function() { window.location.reload(); }, reload - now);
   })();
 </script>
 
@@ -1322,9 +1324,16 @@ onSnapshot(
   err => { console.error(err); setStatus('disconnected'); }
 );
 
-// Paid history: today's paid orders, newest first, up to 500 entries
-const todayStart = new Date();
-todayStart.setHours(0, 0, 0, 0);
+// Business-day start: restaurant open 09:00–04:00.
+// Before 09:00 the "today" revenue belongs to the previous evening.
+function getBusinessDayStart() {
+  const now   = new Date();
+  const start = new Date(now);
+  if (now.getHours() < 9) start.setDate(start.getDate() - 1);
+  start.setHours(9, 0, 0, 0);
+  return start;
+}
+const todayStart = getBusinessDayStart();
 
 onSnapshot(
   query(
