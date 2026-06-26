@@ -672,6 +672,7 @@
     if (val === CASHIER_PIN) {
       sessionStorage.setItem(PIN_SESSION_KEY, '1');
       showApp();
+      window.dispatchEvent(new Event('panel-unlocked'));
     } else {
       document.getElementById('pin-error').textContent = 'Yanlış PIN, tekrar deneyin.';
       document.getElementById('pin-input').value = '';
@@ -693,6 +694,7 @@
 
 <script type="module">
 import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
+import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore, collection, query, where, orderBy, onSnapshot, updateDoc, doc, limit, Timestamp }
   from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
@@ -705,7 +707,14 @@ const app = initializeApp({
   messagingSenderId: "633937883385",
   appId:             "1:633937883385:web:a22dc3081a17c96ea9b228"
 });
-const db = getFirestore(app);
+const db   = getFirestore(app);
+const auth = getAuth(app);
+
+async function signInPanel() {
+  try { await signInAnonymously(auth); } catch (e) { console.error('Auth error:', e); }
+}
+if (sessionStorage.getItem('dk:cashier-pin') === '1') signInPanel();
+window.addEventListener('panel-unlocked', signInPanel);
 
 // ── DOM refs ─────────────────────────────────────────────────────────────
 const statusDot         = document.getElementById('status-dot');
@@ -725,7 +734,17 @@ const emptyPaid         = document.getElementById('empty-paid');
 // ── Helpers ───────────────────────────────────────────────────────────────
 const esc = window.escHtml;
 
-// ── Audio alert (same AudioContext pattern as kitchen) ────────────────────
+// ── Notification permission ───────────────────────────────────────────────
+let notifPermission = Notification.permission;
+function askNotifPermission() {
+  if (notifPermission === 'default') {
+    Notification.requestPermission().then(p => { notifPermission = p; });
+  }
+}
+document.addEventListener('click', askNotifPermission, { once: true });
+if (notifPermission === 'default') askNotifPermission();
+
+// ── Audio alert (two rising tones) ───────────────────────────────────────
 let _audioCtx = null;
 function getAudioCtx() {
   if (!_audioCtx || _audioCtx.state === 'closed') {
@@ -733,19 +752,47 @@ function getAudioCtx() {
   }
   return _audioCtx;
 }
-function beep() {
+
+function playAlert() {
   try {
     const ctx = getAudioCtx();
     if (!ctx) return;
     if (ctx.state === 'suspended') ctx.resume();
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain); gain.connect(ctx.destination);
-    osc.frequency.value = 660; osc.type = 'sine';
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime + 0.6);
+    [[660, 0], [880, 0.22]].forEach(([freq, delay]) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain); gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      const t = ctx.currentTime + delay;
+      gain.gain.setValueAtTime(0, t);
+      gain.gain.linearRampToValueAtTime(0.4, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + 0.55);
+      osc.start(t); osc.stop(t + 0.6);
+    });
   } catch {}
+}
+
+function fireNotification(title, body, tag) {
+  if (Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(title, {
+      body,
+      icon: '/favicon.ico',
+      requireInteraction: true,
+      tag,
+    });
+    n.onclick = () => { window.focus(); n.close(); };
+  } catch {}
+}
+
+function alertCashier(order) {
+  playAlert();
+  fireNotification(
+    '✅ Sipariş Hazır',
+    `Masa ${order.table_id} — ödeme için`,
+    order.id
+  );
 }
 
 // ── Live order state ──────────────────────────────────────────────────────
@@ -804,12 +851,12 @@ function renderOpen(orders) {
   });
 
   const sorted = sortOpen(orders);
-  let hasNewServed = false;
+  const newlyServed = [];
 
   sorted.forEach(order => {
     const prev        = prevStatusMap.get(order.id);
     const isNewServed = !firstOpenLoad && order.status === 'served' && prev === 'pending';
-    if (isNewServed) hasNewServed = true;
+    if (isNewServed) newlyServed.push(order);
     prevStatusMap.set(order.id, order.status);
 
     const existing = gridOpen.querySelector(`.order-card[data-id="${esc(order.id)}"]`);
@@ -918,7 +965,7 @@ function renderOpen(orders) {
     gridOpen.appendChild(card);
   });
 
-  if (hasNewServed) beep();
+  newlyServed.forEach(o => alertCashier(o));
   firstOpenLoad = false;
 
   rebuildGroupHeaders(orders);
@@ -1049,15 +1096,25 @@ function confirmCloseAll(tableId, hdr) {
   row.querySelector('.btn-cyes').onclick = async () => {
     row.querySelector('.btn-cyes').disabled = true;
     // Read live orders at click time — avoids race if new order arrived since header built
-    const liveOrders = [...openOrdersMap.values()].filter(o => o.table_id === tableId);
+    const liveOrders    = [...openOrdersMap.values()].filter(o => o.table_id === tableId);
+    const servedOrders  = liveOrders.filter(o => o.status === 'served');
+    const pendingOrders = liveOrders.filter(o => o.status === 'pending');
     if (!liveOrders.length) {
       delete hdr.dataset.confirming;
       row.remove();
       btn.style.display = '';
       return;
     }
+    // Block if any order is still being prepared — kitchen hasn't served it yet
+    if (pendingOrders.length > 0) {
+      row.querySelector('.btn-cyes').disabled = false;
+      row.querySelector('.confirm-msg').textContent =
+        `⚠ ${pendingOrders.length} sipariş henüz mutfakta hazırlanıyor!`;
+      row.querySelector('.confirm-msg').style.color = 'var(--red)';
+      return;
+    }
     try {
-      await Promise.all(liveOrders.map(o => updateDoc(doc(db, 'orders', o.id), { status: 'paid' })));
+      await Promise.all(servedOrders.map(o => updateDoc(doc(db, 'orders', o.id), { status: 'paid' })));
       if (!printTableReceipt(liveOrders)) {
         row.querySelector('span').textContent = 'Ödeme kaydedildi — fiş için:';
         const printBtn = document.createElement('button');

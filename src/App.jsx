@@ -8,7 +8,7 @@ import { collection, getDocs, query, orderBy, where, addDoc, doc, getDoc, onSnap
 import { useLanguage, localize, parsePriceNum } from './i18n';
 import Cart from './components/Cart';
 import OrderStatus from './components/OrderStatus';
-import { initTableSession, clearTableSession, getOrCreateSessionId, getCooldownRemaining, recordOrderPlaced, clearOrderCooldown } from './lib/tableSession';
+import { initTableSession, clearTableSession, getOrCreateSessionId, getCooldownRemaining, recordOrderPlaced, clearOrderCooldown, recordWaiterCall, getWaiterCallRemaining, clearWaiterCall, saveBillRequested, loadBillRequested, clearBillRequested } from './lib/tableSession';
 
 // ── Active-order session persistence ──────────────────────────────────────
 const ORDER_KEY = 'dk:active-order';
@@ -36,8 +36,8 @@ async function getNextOrderNumber(db) {
       return count;
     });
   } catch {
-    const midnight = new Date(); midnight.setHours(0, 0, 0, 0);
-    return (Math.floor((Date.now() - midnight.getTime()) / 1000) % 999) + 1;
+    // Random 3-digit fallback — avoids collision with real sequential numbers
+    return Math.floor(Math.random() * 900) + 100;
   }
 }
 import './index.css';
@@ -138,8 +138,13 @@ export default function App() {
   const [cooldownLeft, setCooldownLeft] = React.useState(() => getCooldownRemaining());
   const [notes, setNotes] = React.useState('');
   const [cancelReason, setCancelReason] = React.useState(null);
-  const [waiterCallState, setWaiterCallState] = React.useState('idle'); // 'idle' | 'calling' | 'called'
-  const [billRequested, setBillRequested] = React.useState(false);
+  const [waiterCallState, setWaiterCallState] = React.useState(
+    () => getWaiterCallRemaining() > 0 ? 'called' : 'idle'
+  );
+  const [billRequested, setBillRequested] = React.useState(
+    () => _savedOrder?.id ? loadBillRequested(_savedOrder.id) : false
+  );
+  const waiterCallTimerRef = React.useRef(null);
 
   React.useEffect(() => {
     const sections = Array.from(document.querySelectorAll('.menu-section'));
@@ -267,6 +272,18 @@ export default function App() {
     setTableNumber(table);
   }, []);
 
+  // ── Waiter call expiry — resume countdown after page refresh ──
+  React.useEffect(() => {
+    const remaining = getWaiterCallRemaining();
+    if (remaining > 0) {
+      waiterCallTimerRef.current = setTimeout(() => {
+        clearWaiterCall();
+        setWaiterCallState('idle');
+      }, remaining);
+    }
+    return () => { if (waiterCallTimerRef.current) clearTimeout(waiterCallTimerRef.current); };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── Cooldown countdown ──
   React.useEffect(() => {
     if (cooldownLeft <= 0) return;
@@ -382,6 +399,7 @@ export default function App() {
         quantity: it.quantity,
       }));
       setCart(restoredCart);
+      setNotes(snap.data().notes || '');
       setIsEditing(true);
       setShowCart(true);
     } catch (err) {
@@ -420,6 +438,9 @@ export default function App() {
   function handleNewOrder() {
     clearActiveOrder();
     clearOrderCooldown();
+    clearBillRequested();
+    clearWaiterCall();
+    if (waiterCallTimerRef.current) { clearTimeout(waiterCallTimerRef.current); waiterCallTimerRef.current = null; }
     setOrderId(null);
     setOrderNumber(null);
     setOrderPlacedAt(null);
@@ -429,11 +450,13 @@ export default function App() {
     setCancelReason(null);
     setNotes('');
     setBillRequested(false);
+    setWaiterCallState('idle');
   }
 
   async function requestBill() {
     if (!tableNumber || billRequested) return;
     setBillRequested(true);
+    saveBillRequested(orderId);
     try {
       await addDoc(collection(db, 'waiter_calls'), {
         table_id: tableNumber,
@@ -443,6 +466,7 @@ export default function App() {
     } catch (err) {
       console.error(err);
       setBillRequested(false);
+      clearBillRequested();
     }
   }
 
@@ -454,8 +478,14 @@ export default function App() {
         table_id: tableNumber,
         timestamp: serverTimestamp(),
       });
+      recordWaiterCall();
       setWaiterCallState('called');
-      setTimeout(() => setWaiterCallState('idle'), 5 * 60 * 1000);
+      if (waiterCallTimerRef.current) clearTimeout(waiterCallTimerRef.current);
+      waiterCallTimerRef.current = setTimeout(() => {
+        clearWaiterCall();
+        setWaiterCallState('idle');
+        waiterCallTimerRef.current = null;
+      }, 5 * 60 * 1000);
     } catch (err) {
       console.error(err);
       setWaiterCallState('idle');
@@ -480,16 +510,29 @@ export default function App() {
         setOrderState('served');
       } else if (status === 'cancelled') {
         // Kitchen rejected — clear order but keep table so customer can re-order immediately
-        setCancelReason(snap.data().cancel_reason || null);
+        const reason = snap.data().cancel_reason || null;
+        setCancelReason(reason);
         clearActiveOrder();
+        clearBillRequested();
         clearOrderCooldown();
         setOrderId(null);
         setOrderNumber(null);
         setOrderPlacedAt(null);
         setOrderState('cancelled');
         setCooldownLeft(0);
+        // Notify customer even if browser is backgrounded (only if they granted permission)
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          try {
+            new Notification('❌ Siparişiniz iptal edildi', {
+              body: reason ? `Sebep: ${reason}` : 'Lütfen garsonunuzu çağırın.',
+              icon: '/favicon.ico',
+            });
+          } catch {}
+        }
       } else if (status === 'paid') {
         clearActiveOrder();
+        clearBillRequested();
+        clearWaiterCall();
         clearTableSession();
         setOrderId(null);
         setOrderNumber(null);

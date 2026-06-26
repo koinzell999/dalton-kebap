@@ -76,3 +76,38 @@ export function recordOrderPlaced() {
 export function clearOrderCooldown() {
   try { localStorage.removeItem(LAST_ORDER_KEY); } catch {}
 }
+
+// ── Waiter call persistence (5-min cooldown survives page refreshes) ─────────
+const WAITER_CALL_KEY     = 'dk:waiter-called';
+const WAITER_COOLDOWN_MS  = 5 * 60 * 1000;
+
+export function recordWaiterCall() {
+  try { localStorage.setItem(WAITER_CALL_KEY, String(Date.now())); } catch {}
+}
+
+export function getWaiterCallRemaining() {
+  try {
+    const ts = localStorage.getItem(WAITER_CALL_KEY);
+    if (!ts) return 0;
+    return Math.max(0, WAITER_COOLDOWN_MS - (Date.now() - parseInt(ts, 10)));
+  } catch { return 0; }
+}
+
+export function clearWaiterCall() {
+  try { localStorage.removeItem(WAITER_CALL_KEY); } catch {}
+}
+
+// ── Bill request persistence (survives page refreshes, keyed by order ID) ────
+const BILL_KEY = 'dk:bill-order';
+
+export function saveBillRequested(orderId) {
+  try { localStorage.setItem(BILL_KEY, orderId); } catch {}
+}
+
+export function loadBillRequested(orderId) {
+  try { return localStorage.getItem(BILL_KEY) === orderId; } catch { return false; }
+}
+
+export function clearBillRequested() {
+  try { localStorage.removeItem(BILL_KEY); } catch {}
+}

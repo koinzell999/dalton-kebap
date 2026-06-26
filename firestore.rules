@@ -43,14 +43,18 @@ service cloud.firestore {
           && d.order_items  is list   && d.order_items.size() > 0 && d.order_items.size() <= 50
           && d.total_price  is number && d.total_price > 0
           && d.session_id   is string && d.session_id.size() > 0
-          && d.order_number is int    && d.order_number > 0;
+          && d.order_number is int    && d.order_number > 0
+          // Notes are optional but capped at 300 chars to prevent abuse
+          && (!d.keys().hasAll(['notes']) || d.notes.size() <= 300);
     }
 
     // Allowed status transitions:
-    //   Kitchen: pending → served
-    //   Kitchen: pending → cancelled  (with optional cancel_reason)
-    //   Cashier: served  → paid
-    //   Cashier: pending → paid       (force-close whole table)
+    //   Kitchen (auth required): pending → served
+    //   Kitchen (auth required): pending → cancelled  (with optional cancel_reason)
+    //   Cashier (auth required): served  → paid
+    //   Cashier (auth required): pending → paid       (force-close whole table)
+    // All paid/cancelled transitions require Firebase auth so unauthenticated
+    // customers cannot self-pay or cancel other tables via the REST API.
     function validStatusUpdate() {
       let from    = resource.data.status;
       let to      = request.resource.data.status;
@@ -60,31 +64,34 @@ service cloud.firestore {
         changed.hasOnly(['status']) ||
         (isCancellation && changed.hasOnly(['status', 'cancel_reason']))
       ) && (
-           (from == 'pending' && to == 'served')    ||
-           (from == 'pending' && to == 'cancelled') ||
-           (from == 'pending' && to == 'paid')      ||
-           (from == 'served'  && to == 'paid')
+           (from == 'pending' && to == 'served')                            ||  // kitchen — no auth needed
+           (from == 'pending' && to == 'cancelled' && request.auth != null) ||  // kitchen only
+           (from == 'pending' && to == 'paid'      && request.auth != null) ||  // cashier only
+           (from == 'served'  && to == 'paid'      && request.auth != null)     // cashier only
       );
     }
 
-    // Customer edits items/total/notes while order is still pending (10-min window enforced client-side).
+    // Customer edits items/total/notes while order is still pending.
+    // Edit window (10 min) is now also enforced server-side via timestamp.
     function validOrderEdit() {
       let current = resource.data;
       let d       = request.resource.data;
       return current.status == 'pending'
+          && request.time < resource.data.timestamp + duration.value(10, 'm')
           && d.diff(current).affectedKeys().hasOnly(['order_items','total_price','notes'])
           && d.order_items is list && d.order_items.size() > 0 && d.order_items.size() <= 50
-          && d.total_price is number && d.total_price > 0;
+          && d.total_price is number && d.total_price > 0
+          && (!d.keys().hasAll(['notes']) || d.notes.size() <= 300);
     }
 
-    // Waiter call notifications — customers create, waiter panel deletes after acknowledging.
+    // Waiter call notifications — customers create; waiter panel (authenticated) deletes.
     match /waiter_calls/{callId} {
       allow read:   if true;
       allow create: if request.resource.data.keys().hasAll(['table_id','timestamp'])
           && request.resource.data.table_id is int
           && request.resource.data.table_id >= 1
           && request.resource.data.table_id <= 13;
-      allow delete: if true;
+      allow delete: if request.auth != null;  // waiter panel signs in anonymously after PIN
       allow update: if false;
     }
 
