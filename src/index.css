@@ -1080,6 +1080,30 @@ body {
 .waiter-btn:disabled { opacity: 0.6; cursor: default; }
 .waiter-btn-called { background: rgba(34, 197, 94, 0.22); border-color: #22c55e; }
 
+.bill-request-btn {
+  width: 100%;
+  padding: 14px 20px;
+  margin-bottom: 10px;
+  border-radius: 12px;
+  border: 2px solid #f59e0b;
+  background: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s, opacity 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.bill-request-btn:hover:not(:disabled) { background: rgba(245, 158, 11, 0.22); }
+.bill-request-btn--done {
+  border-color: #22c55e;
+  background: rgba(34, 197, 94, 0.12);
+  color: #22c55e;
+  opacity: 0.85;
+  cursor: default;
+}
+
 .cart-btn {
   position: relative;
   background: var(--c-orange);

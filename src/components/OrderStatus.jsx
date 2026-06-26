@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function OrderStatus({ orderState, tableNumber, orderNumber, editTimeLeft, onEdit, onNewOrder, cancelReason, t, isRTL }) {
+export default function OrderStatus({ orderState, tableNumber, orderNumber, editTimeLeft, onEdit, onNewOrder, cancelReason, billRequested, onRequestBill, t, isRTL }) {
   const isServed    = orderState === 'served';
   const isCancelled = orderState === 'cancelled';
   const isWaiting   = orderState === 'waiting';
@@ -55,6 +55,17 @@ export default function OrderStatus({ orderState, tableNumber, orderNumber, edit
 
         {isWaiting && editTimeLeft === 0 && (
           <p className="order-edit-closed">{t('editWindowClosed')}</p>
+        )}
+
+        {isServed && (
+          <button
+            type="button"
+            className={`btn bill-request-btn${billRequested ? ' bill-request-btn--done' : ''}`}
+            onClick={onRequestBill}
+            disabled={billRequested}
+          >
+            {billRequested ? `✓ ${t('billRequested')}` : `💳 ${t('requestBill')}`}
+          </button>
         )}
 
         {(isServed || isCancelled) && (

@@ -89,10 +89,16 @@
       animation: slideIn 0.3s ease;
       box-shadow: 0 0 18px rgba(129,140,248,.2);
     }
+    .call-card.bill {
+      border-color: var(--orange);
+      box-shadow: 0 0 18px rgba(245,158,11,.25);
+    }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
 
     .call-table { font-family: 'Oswald', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--yellow); letter-spacing: 1px; }
-    .call-time  { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .call-type  { font-size: 0.72rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; margin-top: 2px; color: var(--blue); }
+    .call-card.bill .call-type { color: var(--orange); }
+    .call-time  { font-size: 0.78rem; color: var(--muted); margin-top: 1px; }
     .btn-ack {
       background: var(--green); color: #fff; border: none; border-radius: 8px;
       padding: 0.55rem 1.1rem; font-family: 'Oswald', sans-serif; font-weight: 700;
@@ -248,11 +254,13 @@ function renderCalls(calls) {
     return ta - tb;
   });
   calls.forEach(call => {
+    const isBill = call.type === 'bill';
     const card = document.createElement('div');
-    card.className = 'call-card';
+    card.className = 'call-card' + (isBill ? ' bill' : '');
     card.innerHTML = `
       <div>
-        <div class="call-table">🛎 MASA ${esc(call.table_id)}</div>
+        <div class="call-table">${isBill ? '💳' : '🛎'} MASA ${esc(call.table_id)}</div>
+        <div class="call-type">${isBill ? 'Hesap İstendi' : 'Garson Çağrısı'}</div>
         <div class="call-time">${fmtTime(call.timestamp)}</div>
       </div>
       <button class="btn-ack">✓ Anlaşıldı</button>

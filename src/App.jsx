@@ -139,6 +139,7 @@ export default function App() {
   const [notes, setNotes] = React.useState('');
   const [cancelReason, setCancelReason] = React.useState(null);
   const [waiterCallState, setWaiterCallState] = React.useState('idle'); // 'idle' | 'calling' | 'called'
+  const [billRequested, setBillRequested] = React.useState(false);
 
   React.useEffect(() => {
     const sections = Array.from(document.querySelectorAll('.menu-section'));
@@ -427,6 +428,22 @@ export default function App() {
     setCooldownLeft(0);
     setCancelReason(null);
     setNotes('');
+    setBillRequested(false);
+  }
+
+  async function requestBill() {
+    if (!tableNumber || billRequested) return;
+    setBillRequested(true);
+    try {
+      await addDoc(collection(db, 'waiter_calls'), {
+        table_id: tableNumber,
+        timestamp: serverTimestamp(),
+        type: 'bill',
+      });
+    } catch (err) {
+      console.error(err);
+      setBillRequested(false);
+    }
   }
 
   async function callWaiter() {
@@ -687,6 +704,8 @@ export default function App() {
             onEdit={startEdit}
             onNewOrder={handleNewOrder}
             cancelReason={cancelReason}
+            billRequested={billRequested}
+            onRequestBill={requestBill}
             t={t}
             isRTL={isRTL}
           />
