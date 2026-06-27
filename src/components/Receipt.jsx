@@ -1,15 +1,16 @@
 import React from 'react';
 
-export default function Receipt({ receipt, onClose, t, isRTL }) {
+export default function Receipt({ receipt, onClose, t, isRTL, mode }) {
   const { items, total, orderNumber, tableNumber } = receipt;
+  const isBill = mode === 'bill';
 
   return (
     <div className="receipt-overlay" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="receipt-card">
-        <div className="receipt-icon">✅</div>
+        <div className="receipt-icon">{isBill ? '💳' : '✅'}</div>
 
-        <h2 className="receipt-title">{t('receiptTitle')}</h2>
-        <p className="receipt-subtitle">{t('receiptSubtitle')}</p>
+        <h2 className="receipt-title">{isBill ? t('billTitle') : t('receiptTitle')}</h2>
+        <p className="receipt-subtitle">{isBill ? t('billSubtitle') : t('receiptSubtitle')}</p>
 
         {orderNumber != null && (
           <div className="receipt-order-number">
@@ -42,10 +43,10 @@ export default function Receipt({ receipt, onClose, t, isRTL }) {
           <span>{total.toLocaleString('tr-TR')} ₺</span>
         </div>
 
-        <p className="receipt-thanks">{t('receiptThanks')}</p>
+        <p className="receipt-thanks">{isBill ? t('billThanks') : t('receiptThanks')}</p>
 
         <button type="button" className="btn btn-primary" onClick={onClose}>
-          {t('receiptClose')}
+          {isBill ? t('billClose') : t('receiptClose')}
         </button>
       </div>
     </div>

@@ -153,6 +153,10 @@ export const translations = {
     receiptSubtitle: "İşte siparişinizin özeti:",
     receiptThanks: "Bizi tercih ettiğiniz için teşekkürler! 🙏",
     receiptClose: "Kapat",
+    billTitle: "Hesabınız",
+    billSubtitle: "Garsonunuz kısa sürede yanınızda olacak.",
+    billThanks: "Bizi tercih ettiğiniz için teşekkürler! 🙏",
+    billClose: "Kapat",
   },
   en: {
     // Public menu
@@ -306,6 +310,10 @@ export const translations = {
     receiptSubtitle: "Here's your order summary:",
     receiptThanks: "Thank you for dining with us! 🙏",
     receiptClose: "Close",
+    billTitle: "Your Bill",
+    billSubtitle: "Your waiter will be with you shortly.",
+    billThanks: "Thank you for dining with us! 🙏",
+    billClose: "Close",
   },
   ar: {
     // Public menu
@@ -459,6 +467,10 @@ export const translations = {
     receiptSubtitle: "ملخص طلبك:",
     receiptThanks: "شكراً لزيارتكم! 🙏",
     receiptClose: "إغلاق",
+    billTitle: "حسابك",
+    billSubtitle: "سيصل إليك النادل قريباً.",
+    billThanks: "شكراً لزيارتكم! 🙏",
+    billClose: "إغلاق",
   },
 };
 

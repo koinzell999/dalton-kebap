@@ -156,6 +156,7 @@ export default function App() {
   );
   const waiterCallTimerRef = React.useRef(null);
   const [receipt, setReceipt] = React.useState(null);
+  const [billReceipt, setBillReceipt] = React.useState(null);
 
   React.useEffect(() => {
     const sections = Array.from(document.querySelectorAll('.menu-section'));
@@ -474,6 +475,19 @@ export default function App() {
         timestamp: serverTimestamp(),
         type: 'bill',
       });
+      // Show the customer a bill preview immediately after requesting
+      if (orderId) {
+        const snap = await getDoc(doc(db, 'orders', orderId));
+        if (snap.exists()) {
+          const d = snap.data();
+          setBillReceipt({
+            items:       d.order_items  || [],
+            total:       d.total_price  || 0,
+            orderNumber: d.order_number || null,
+            tableNumber: d.table_id     || null,
+          });
+        }
+      }
     } catch (err) {
       console.error(err);
       setBillRequested(false);
@@ -764,6 +778,16 @@ export default function App() {
             onClose={() => setReceipt(null)}
             t={t}
             isRTL={isRTL}
+          />
+        )}
+
+        {billReceipt && (
+          <Receipt
+            receipt={billReceipt}
+            onClose={() => setBillReceipt(null)}
+            t={t}
+            isRTL={isRTL}
+            mode="bill"
           />
         )}
 
