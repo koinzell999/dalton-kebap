@@ -191,7 +191,6 @@
       sessionStorage.setItem(PIN_SESSION_KEY, '1');
       document.getElementById('pin-gate').style.display = 'none';
       document.getElementById('app').removeAttribute('hidden');
-      window.dispatchEvent(new Event('panel-unlocked'));
     } else {
       document.getElementById('pin-error').textContent = 'Yanlış PIN, tekrar deneyin.';
       document.getElementById('pin-input').value = '';
@@ -206,7 +205,6 @@
 
 <script type="module">
 import { initializeApp }  from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js';
 import { getFirestore, collection, query, where, onSnapshot, deleteDoc, doc }
   from 'https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js';
 
@@ -218,14 +216,7 @@ const app = initializeApp({
   messagingSenderId: "633937883385",
   appId:             "1:633937883385:web:a22dc3081a17c96ea9b228"
 });
-const db   = getFirestore(app);
-const auth = getAuth(app);
-
-async function signInPanel() {
-  try { await signInAnonymously(auth); } catch (e) { console.error('Auth error:', e); }
-}
-if (sessionStorage.getItem('dk:waiter-pin') === '1') signInPanel();
-window.addEventListener('panel-unlocked', signInPanel);
+const db = getFirestore(app);
 
 const esc        = window.escHtml;
 const callsGrid  = document.getElementById('calls-grid');
