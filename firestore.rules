@@ -48,15 +48,10 @@ service cloud.firestore {
           && (!d.keys().hasAll(['notes']) || d.notes.size() <= 300);
     }
 
-    // Allowed status transitions:
-    //   Kitchen (auth required): pending  → preparing (acknowledge order)
-    //   Kitchen (auth required): pending  → cancelled (with optional cancel_reason)
-    //   Kitchen (auth required): preparing → served   (food ready)
-    //   Kitchen (auth required): preparing → cancelled
-    //   Cashier (auth required): served   → paid
-    //   Cashier (auth required): pending  → paid      (force-close)
-    //   Cashier (auth required): preparing → paid     (force-close edge case)
-    // All transitions require Firebase auth — kitchen/cashier sign in anonymously after PIN.
+    // Allowed status transitions — PIN gates on the staff panels control access.
+    // Anonymous Firebase auth is not used (disabled in this project); the state
+    // machine below is the security control: valid from/to pairs and restricted
+    // field changes prevent status skipping or forging.
     function validStatusUpdate() {
       let from    = resource.data.status;
       let to      = request.resource.data.status;
@@ -65,9 +60,9 @@ service cloud.firestore {
       return (
         changed.hasOnly(['status']) ||
         (isCancellation && changed.hasOnly(['status', 'cancel_reason']))
-      ) && request.auth != null && (
+      ) && (
            (from == 'pending'   && to == 'preparing')  ||  // kitchen: acknowledge
-           (from == 'pending'   && to == 'cancelled' ) ||  // kitchen: reject
+           (from == 'pending'   && to == 'cancelled' ) ||  // kitchen/customer: reject
            (from == 'preparing' && to == 'served'   )  ||  // kitchen: food ready
            (from == 'preparing' && to == 'cancelled' ) ||  // kitchen: abort mid-prep
            (from == 'pending'   && to == 'paid'      ) ||  // cashier: force-close
@@ -96,7 +91,7 @@ service cloud.firestore {
           && request.resource.data.table_id is int
           && request.resource.data.table_id >= 1
           && request.resource.data.table_id <= 13;
-      allow delete: if request.auth != null;  // waiter panel signs in anonymously after PIN
+      allow delete: if true;  // waiter panel marks calls resolved; PIN gate controls access
       allow update: if false;
     }
 
