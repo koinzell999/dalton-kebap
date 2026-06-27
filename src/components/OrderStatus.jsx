@@ -4,6 +4,7 @@ export default function OrderStatus({ orderState, tableNumber, orderNumber, edit
   const isServed    = orderState === 'served';
   const isCancelled = orderState === 'cancelled';
   const isWaiting   = orderState === 'waiting';
+  const isPreparing = orderState === 'preparing';
   const canEdit     = isWaiting && editTimeLeft != null && editTimeLeft > 0;
 
   function fmtCountdown(secs) {
@@ -14,9 +15,15 @@ export default function OrderStatus({ orderState, tableNumber, orderNumber, edit
       .replace('{s}', String(s).padStart(2, '0'));
   }
 
-  const icon  = isCancelled ? '❌' : isServed ? '🎉' : '🍽️';
-  const title = isCancelled ? t('orderCancelledTitle') : isServed ? t('orderServedTitle') : t('orderReceivedTitle');
-  const msg   = isCancelled ? t('orderCancelledMsg')   : isServed ? t('orderServedMsg')   : t('orderReceivedMsg');
+  const icon  = isCancelled ? '❌' : isServed ? '🎉' : isPreparing ? '👨‍🍳' : '🍽️';
+  const title = isCancelled ? t('orderCancelledTitle')
+              : isServed    ? t('orderServedTitle')
+              : isPreparing ? t('orderPreparingTitle')
+              :               t('orderReceivedTitle');
+  const msg   = isCancelled ? t('orderCancelledMsg')
+              : isServed    ? t('orderServedMsg')
+              : isPreparing ? t('orderPreparingMsg')
+              :               t('orderReceivedMsg');
 
   return (
     <div className="order-status-overlay" dir={isRTL ? 'rtl' : 'ltr'}>
@@ -44,7 +51,7 @@ export default function OrderStatus({ orderState, tableNumber, orderNumber, edit
           </div>
         )}
 
-        {isWaiting && <div className="order-spinner" />}
+        {(isWaiting || isPreparing) && <div className="order-spinner" />}
 
         {canEdit && (
           <button type="button" className="btn order-edit-btn" onClick={onEdit}>

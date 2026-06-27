@@ -515,6 +515,8 @@ export default function App() {
       const status = snap.data().status;
       if (status === 'pending') {
         setOrderState('waiting');
+      } else if (status === 'preparing') {
+        setOrderState('preparing');
       } else if (status === 'served') {
         setOrderState('served');
       } else if (status === 'cancelled') {

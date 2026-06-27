@@ -49,25 +49,30 @@ service cloud.firestore {
     }
 
     // Allowed status transitions:
-    //   Kitchen (auth required): pending → served
-    //   Kitchen (auth required): pending → cancelled  (with optional cancel_reason)
-    //   Cashier (auth required): served  → paid
-    //   Cashier (auth required): pending → paid       (force-close whole table)
-    // All paid/cancelled transitions require Firebase auth so unauthenticated
-    // customers cannot self-pay or cancel other tables via the REST API.
+    //   Kitchen (auth required): pending  → preparing (acknowledge order)
+    //   Kitchen (auth required): pending  → cancelled (with optional cancel_reason)
+    //   Kitchen (auth required): preparing → served   (food ready)
+    //   Kitchen (auth required): preparing → cancelled
+    //   Cashier (auth required): served   → paid
+    //   Cashier (auth required): pending  → paid      (force-close)
+    //   Cashier (auth required): preparing → paid     (force-close edge case)
+    // All transitions require Firebase auth — kitchen/cashier sign in anonymously after PIN.
     function validStatusUpdate() {
       let from    = resource.data.status;
       let to      = request.resource.data.status;
       let changed = request.resource.data.diff(resource.data).affectedKeys();
-      let isCancellation = from == 'pending' && to == 'cancelled';
+      let isCancellation = (from == 'pending' || from == 'preparing') && to == 'cancelled';
       return (
         changed.hasOnly(['status']) ||
         (isCancellation && changed.hasOnly(['status', 'cancel_reason']))
-      ) && (
-           (from == 'pending' && to == 'served')                            ||  // kitchen — no auth needed
-           (from == 'pending' && to == 'cancelled' && request.auth != null) ||  // kitchen only
-           (from == 'pending' && to == 'paid'      && request.auth != null) ||  // cashier only
-           (from == 'served'  && to == 'paid'      && request.auth != null)     // cashier only
+      ) && request.auth != null && (
+           (from == 'pending'   && to == 'preparing')  ||  // kitchen: acknowledge
+           (from == 'pending'   && to == 'cancelled' ) ||  // kitchen: reject
+           (from == 'preparing' && to == 'served'   )  ||  // kitchen: food ready
+           (from == 'preparing' && to == 'cancelled' ) ||  // kitchen: abort mid-prep
+           (from == 'pending'   && to == 'paid'      ) ||  // cashier: force-close
+           (from == 'preparing' && to == 'paid'      ) ||  // cashier: force-close
+           (from == 'served'    && to == 'paid'      )     // cashier: normal payment
       );
     }
 

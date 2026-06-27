@@ -226,6 +226,31 @@
       50%      { box-shadow: 0 0 36px rgba(245,158,11,.7); }
     }
 
+    /* Preparing state — kitchen acknowledged, cooking in progress */
+    .order-card.status-preparing { border-color: rgba(251,191,36,.6); }
+    .status-preparing .card-head { background: rgba(251,191,36,.12); }
+    .status-preparing .table-num { color: #fbbf24; }
+
+    .btn-start {
+      background: var(--orange);
+      color: #fff;
+      border: none;
+      padding: 0.55rem 1.1rem;
+      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      cursor: pointer;
+      font-family: 'Oswald', sans-serif;
+      letter-spacing: 0.5px;
+      transition: background 0.15s, transform 0.1s;
+      min-height: 44px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .btn-start:hover    { background: #c2410c; }
+    .btn-start:active   { transform: scale(0.97); }
+    .btn-start:disabled { background: #3a3a3a; cursor: not-allowed; color: #888; }
+
     .card-head {
       background: rgba(245,158,11,.1);
       border-bottom: 1px solid var(--border);
@@ -660,6 +685,23 @@ function renderOrders(orders) {
     if (existing) {
       if (tsMs) existing.dataset.ts = tsMs;
       updateElapsed(existing);
+      // Swap card style and buttons when status transitions (e.g. pending → preparing)
+      if (existing.dataset.status !== order.status) {
+        existing.dataset.status = order.status;
+        existing.className = existing.className
+          .replace(/status-\w+/, `status-${order.status}`);
+        const btns = existing.querySelector('.card-btns');
+        if (btns && !existing.dataset.confirming) {
+          if (order.status === 'preparing') {
+            btns.innerHTML = '<button class="btn-reject">✕ Reddet</button><button class="btn-serve">✓ Servis Edildi</button>';
+            btns.querySelector('.btn-serve').addEventListener('click', () => markServed(order.id, existing));
+          } else {
+            btns.innerHTML = '<button class="btn-reject">✕ Reddet</button><button class="btn-start">▶ Hazırlanıyor</button>';
+            btns.querySelector('.btn-start').addEventListener('click', () => markPreparing(order.id, existing));
+          }
+          btns.querySelector('.btn-reject').addEventListener('click', () => confirmReject(order.id, existing));
+        }
+      }
       // Refresh items/total/notes if customer edited the order while it was pending
       if (!existing.dataset.confirming) {
         const items   = order.order_items || [];
@@ -693,8 +735,9 @@ function renderOrders(orders) {
     // Build card — all user-supplied strings go through esc() to prevent XSS
     const items = order.order_items || [];
     const card  = document.createElement('div');
-    card.className        = 'order-card' + (isNew && !firstLoad ? ' new-order' : '');
+    card.className        = `order-card status-${order.status}` + (isNew && !firstLoad ? ' new-order' : '');
     card.dataset.id       = order.id;
+    card.dataset.status   = order.status;
     card.dataset.tableId  = order.table_id;
     if (tsMs) card.dataset.ts = tsMs;
 
@@ -723,12 +766,18 @@ function renderOrders(orders) {
         <div class="total">${fmtPrice(order.total_price)}</div>
         <div class="card-btns">
           <button class="btn-reject">✕ Reddet</button>
-          <button class="btn-serve">✓ Servis Edildi</button>
+          ${order.status === 'preparing'
+            ? '<button class="btn-serve">✓ Servis Edildi</button>'
+            : '<button class="btn-start">▶ Hazırlanıyor</button>'}
         </div>
       </div>
     `;
 
-    card.querySelector('.btn-serve').addEventListener('click', () => markServed(order.id, card));
+    if (order.status === 'preparing') {
+      card.querySelector('.btn-serve').addEventListener('click', () => markServed(order.id, card));
+    } else {
+      card.querySelector('.btn-start').addEventListener('click', () => markPreparing(order.id, card));
+    }
     card.querySelector('.btn-reject').addEventListener('click', () => confirmReject(order.id, card));
 
     if (isNew && !firstLoad) {
@@ -760,11 +809,15 @@ function renderOrders(orders) {
     }
   });
 
-  const n = orders.length;
-  empty.style.display = n === 0 ? 'block' : 'none';
-  if (n > 0) {
+  const nPending   = orders.filter(o => o.status === 'pending').length;
+  const nPreparing = orders.filter(o => o.status === 'preparing').length;
+  empty.style.display = orders.length === 0 ? 'block' : 'none';
+  if (orders.length > 0) {
     cntBadge.removeAttribute('hidden');
-    cntBadge.textContent = `${n} sipariş bekliyor`;
+    const parts = [];
+    if (nPending)   parts.push(`${nPending} bekliyor`);
+    if (nPreparing) parts.push(`${nPreparing} hazırlanıyor`);
+    cntBadge.textContent = parts.join(' · ');
   } else {
     cntBadge.setAttribute('hidden', '');
   }
@@ -814,6 +867,22 @@ function confirmReject(orderId, card) {
   };
 }
 
+// ── Mark preparing (kitchen acknowledged, cooking) ───────────────────────
+async function markPreparing(orderId, card) {
+  if (card.dataset.confirming) return;
+  const cardBtns = card.querySelector('.card-btns');
+  const btnStart = card.querySelector('.btn-start');
+  if (btnStart) btnStart.disabled = true;
+  if (cardBtns) cardBtns.querySelectorAll('button').forEach(b => b.disabled = true);
+  try {
+    await updateDoc(doc(db, 'orders', orderId), { status: 'preparing' });
+    // onSnapshot re-renders this card with the preparing style + Servis Edildi button
+  } catch (err) {
+    console.error(err);
+    if (cardBtns) cardBtns.querySelectorAll('button').forEach(b => b.disabled = false);
+  }
+}
+
 // ── Mark served ─────────────────────────────────────────────────────────
 async function markServed(orderId, card) {
   if (card.dataset.confirming) return;
@@ -824,7 +893,7 @@ async function markServed(orderId, card) {
   if (cardBtns) cardBtns.querySelectorAll('button').forEach(b => b.disabled = true);
   try {
     await updateDoc(doc(db, 'orders', orderId), { status: 'served' });
-    // onSnapshot removes this card (no longer pending); cashier handles receipt at payment
+    // onSnapshot removes this card; cashier handles receipt at payment
   } catch (err) {
     console.error(err);
     if (cardBtns) cardBtns.querySelectorAll('button').forEach(b => b.disabled = false);
@@ -835,8 +904,9 @@ async function markServed(orderId, card) {
 // ── Firestore listener ─────────────────────────────────────────────────
 setStatus('connecting');
 // No server orderBy — avoids composite index; client sorts FIFO (≤13 tables is trivial).
+// Query both pending (waiting) and preparing (cooking) orders.
 onSnapshot(
-  query(collection(db, 'orders'), where('status', '==', 'pending')),
+  query(collection(db, 'orders'), where('status', 'in', ['pending', 'preparing'])),
   snap => {
     setStatus('connected');
     const orders = snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -850,8 +920,8 @@ onSnapshot(
   err => { console.error(err); setStatus('disconnected'); }
 );
 
-// Refresh elapsed times every 30 s
-setInterval(() => grid.querySelectorAll('.order-card').forEach(updateElapsed), 30_000);
+// Refresh elapsed times every second
+setInterval(() => grid.querySelectorAll('.order-card').forEach(updateElapsed), 1_000);
 
 // ── Print all table QR codes ──────────────────────────────────────────
 document.getElementById('btn-qr').addEventListener('click', () => {
