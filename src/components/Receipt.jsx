@@ -1,0 +1,53 @@
+import React from 'react';
+
+export default function Receipt({ receipt, onClose, t, isRTL }) {
+  const { items, total, orderNumber, tableNumber } = receipt;
+
+  return (
+    <div className="receipt-overlay" dir={isRTL ? 'rtl' : 'ltr'}>
+      <div className="receipt-card">
+        <div className="receipt-icon">✅</div>
+
+        <h2 className="receipt-title">{t('receiptTitle')}</h2>
+        <p className="receipt-subtitle">{t('receiptSubtitle')}</p>
+
+        {orderNumber != null && (
+          <div className="receipt-order-number">
+            #{String(orderNumber).padStart(3, '0')}
+          </div>
+        )}
+
+        {tableNumber != null && (
+          <div className="receipt-table">{t('table')} {tableNumber}</div>
+        )}
+
+        <div className="receipt-items">
+          {items.map((item, i) => (
+            <div key={i} className="receipt-item">
+              <span className="receipt-item-name">
+                {item.quantity > 1 && <span className="receipt-item-qty">{item.quantity}×</span>}
+                {item.name}
+              </span>
+              <span className="receipt-item-price">
+                {((item.price || 0) * (item.quantity || 1)).toLocaleString('tr-TR')} ₺
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div className="receipt-divider" />
+
+        <div className="receipt-total">
+          <span>{t('total')}</span>
+          <span>{total.toLocaleString('tr-TR')} ₺</span>
+        </div>
+
+        <p className="receipt-thanks">{t('receiptThanks')}</p>
+
+        <button type="button" className="btn btn-primary" onClick={onClose}>
+          {t('receiptClose')}
+        </button>
+      </div>
+    </div>
+  );
+}

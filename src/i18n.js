@@ -149,6 +149,10 @@ export const translations = {
     noOrdersToday: "Bugün henüz ödenen sipariş yok.",
     todaysRevenue: "Günlük Ciro",
     ordersCount: "Sipariş Sayısı",
+    receiptTitle: "Ödeme Alındı",
+    receiptSubtitle: "İşte siparişinizin özeti:",
+    receiptThanks: "Bizi tercih ettiğiniz için teşekkürler! 🙏",
+    receiptClose: "Kapat",
   },
   en: {
     // Public menu
@@ -298,6 +302,10 @@ export const translations = {
     noOrdersToday: "No paid orders today.",
     todaysRevenue: "Today's Revenue",
     ordersCount: "Order Count",
+    receiptTitle: "Payment Received",
+    receiptSubtitle: "Here's your order summary:",
+    receiptThanks: "Thank you for dining with us! 🙏",
+    receiptClose: "Close",
   },
   ar: {
     // Public menu
@@ -447,6 +455,10 @@ export const translations = {
     noOrdersToday: "لا توجد طلبات مدفوعة اليوم.",
     todaysRevenue: "إيرادات اليوم",
     ordersCount: "عدد الطلبات",
+    receiptTitle: "تم استلام الدفع",
+    receiptSubtitle: "ملخص طلبك:",
+    receiptThanks: "شكراً لزيارتكم! 🙏",
+    receiptClose: "إغلاق",
   },
 };
 

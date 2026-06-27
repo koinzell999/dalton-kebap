@@ -8,6 +8,7 @@ import { collection, getDocs, query, orderBy, where, addDoc, doc, getDoc, onSnap
 import { useLanguage, localize, parsePriceNum } from './i18n';
 import Cart from './components/Cart';
 import OrderStatus from './components/OrderStatus';
+import Receipt from './components/Receipt';
 import { initTableSession, clearTableSession, getOrCreateSessionId, getCooldownRemaining, recordOrderPlaced, clearOrderCooldown, recordWaiterCall, getWaiterCallRemaining, clearWaiterCall, saveBillRequested, loadBillRequested, clearBillRequested } from './lib/tableSession';
 
 // ── Active-order session persistence ──────────────────────────────────────
@@ -154,6 +155,7 @@ export default function App() {
     () => _savedOrder?.id ? loadBillRequested(_savedOrder.id) : false
   );
   const waiterCallTimerRef = React.useRef(null);
+  const [receipt, setReceipt] = React.useState(null);
 
   React.useEffect(() => {
     const sections = Array.from(document.querySelectorAll('.menu-section'));
@@ -541,6 +543,13 @@ export default function App() {
           } catch {}
         }
       } else if (status === 'paid') {
+        const d = snap.data();
+        setReceipt({
+          items:       d.order_items  || [],
+          total:       d.total_price  || 0,
+          orderNumber: d.order_number || null,
+          tableNumber: d.table_id     || null,
+        });
         clearActiveOrder();
         clearBillRequested();
         clearWaiterCall();
@@ -744,6 +753,15 @@ export default function App() {
             isEditing={isEditing}
             notes={notes}
             onNotesChange={setNotes}
+            t={t}
+            isRTL={isRTL}
+          />
+        )}
+
+        {receipt && (
+          <Receipt
+            receipt={receipt}
+            onClose={() => setReceipt(null)}
             t={t}
             isRTL={isRTL}
           />
