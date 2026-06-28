@@ -375,6 +375,15 @@
     .btn-close:active:not(:disabled) { transform: scale(0.97); }
     .btn-close:disabled { opacity: 0.4; cursor: not-allowed; }
 
+    @keyframes btn-shake {
+      0%,100% { transform: translateX(0); }
+      20%     { transform: translateX(-5px); }
+      40%     { transform: translateX(5px); }
+      60%     { transform: translateX(-4px); }
+      80%     { transform: translateX(4px); }
+    }
+    .btn-close.shake { animation: btn-shake 0.4s ease; }
+
     /* ── HISTORY (PAID) CARDS ─────────────────────────────── */
 
     .paid-card {
@@ -1030,6 +1039,8 @@ function confirmClose(orderId, card) {
     btn.style.background = 'rgba(239,68,68,.25)';
     btn.style.color      = 'var(--red)';
     btn.style.border     = '1px solid rgba(239,68,68,.5)';
+    btn.classList.add('shake');
+    btn.addEventListener('animationend', () => btn.classList.remove('shake'), { once: true });
     setTimeout(() => {
       btn.disabled  = false;
       btn.textContent = orig;

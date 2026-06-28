@@ -22,7 +22,7 @@
   --c-yellow:    #fcd34d;
   --c-lime:      #c8d400;
   --c-text:      #fef3e2;
-  --c-muted:     #c4956a;
+  --c-muted:     #d4a574;
   --c-green:     #25a244;
 }
 
@@ -773,6 +773,10 @@ body {
 }
 
 .btn:hover { border-color: var(--c-orange); color: var(--c-orange); }
+.btn:focus-visible, button:focus-visible, [role="button"]:focus-visible {
+  outline: 2px solid var(--c-orange);
+  outline-offset: 2px;
+}
 
 .btn.btn-primary {
   background: var(--c-orange);
@@ -1211,12 +1215,20 @@ body {
 
 .cart-close:hover { color: var(--c-text); }
 
+.cart-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 2.5rem 1rem;
+}
+
 .cart-empty {
   color: var(--c-muted);
   text-align: center;
-  padding: 3rem 1rem;
   font-family: 'Open Sans', sans-serif;
   font-size: 0.95rem;
+  margin: 0;
 }
 
 .cart-items {
@@ -1636,4 +1648,38 @@ body {
 .cart-notes-input:focus {
   outline: none;
   border-color: var(--c-orange);
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Cooldown toast ── */
+.cooldown-toast {
+  position: fixed;
+  bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1e1208;
+  border: 1px solid var(--c-orange);
+  color: var(--c-orange);
+  font-family: 'Open Sans', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: 30px;
+  white-space: nowrap;
+  z-index: 3000;
+  animation: toast-in 0.25s ease;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+@keyframes toast-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(12px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
 }

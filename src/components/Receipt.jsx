@@ -1,4 +1,5 @@
 import React from 'react';
+import { formatPrice } from '../i18n';
 
 export default function Receipt({ receipt, onClose, t, isRTL, mode }) {
   const { items, total, orderNumber, tableNumber } = receipt;
@@ -30,7 +31,7 @@ export default function Receipt({ receipt, onClose, t, isRTL, mode }) {
                 {item.name}
               </span>
               <span className="receipt-item-price">
-                {((item.price || 0) * (item.quantity || 1)).toLocaleString('tr-TR')} ₺
+                {formatPrice(String((item.price || 0) * (item.quantity || 1)))}
               </span>
             </div>
           ))}
@@ -40,7 +41,7 @@ export default function Receipt({ receipt, onClose, t, isRTL, mode }) {
 
         <div className="receipt-total">
           <span>{t('total')}</span>
-          <span>{total.toLocaleString('tr-TR')} ₺</span>
+          <span>{formatPrice(String(total))}</span>
         </div>
 
         <p className="receipt-thanks">{isBill ? t('billThanks') : t('receiptThanks')}</p>

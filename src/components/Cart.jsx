@@ -34,7 +34,10 @@ export default function Cart({
         </div>
 
         {cart.length === 0 ? (
-          <p className="cart-empty">{t('cartEmpty')}</p>
+          <div className="cart-empty-state">
+            <p className="cart-empty">{t('cartEmpty')}</p>
+            <button type="button" className="btn btn-primary" onClick={onClose}>{t('browseMenu')}</button>
+          </div>
         ) : (
           <>
             <div className="cart-items">
@@ -68,8 +71,9 @@ export default function Cart({
             </div>
 
             <div className="cart-notes-section">
-              <label className="cart-notes-label">{t('orderNotes')}</label>
+              <label className="cart-notes-label" htmlFor="cart-notes">{t('orderNotes')}</label>
               <textarea
+                id="cart-notes"
                 className="cart-notes-input"
                 value={notes}
                 onChange={(e) => onNotesChange && onNotesChange(e.target.value)}

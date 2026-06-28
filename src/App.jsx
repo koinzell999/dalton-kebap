@@ -157,6 +157,8 @@ export default function App() {
   const waiterCallTimerRef = React.useRef(null);
   const [receipt, setReceipt] = React.useState(null);
   const [billReceipt, setBillReceipt] = React.useState(null);
+  const [toast, setToast] = React.useState(null);
+  const toastTimerRef = React.useRef(null);
 
   React.useEffect(() => {
     const sections = Array.from(document.querySelectorAll('.menu-section'));
@@ -355,7 +357,11 @@ export default function App() {
 
     const cooldown = getCooldownRemaining();
     if (cooldown > 0) {
-      setOrderError(t('cooldownWarning').replace('{sec}', cooldown));
+      const msg = t('cooldownWarning').replace('{sec}', cooldown);
+      setOrderError(msg);
+      setToast(msg);
+      clearTimeout(toastTimerRef.current);
+      toastTimerRef.current = setTimeout(() => setToast(null), 3000);
       return;
     }
 
@@ -771,6 +777,8 @@ export default function App() {
             isRTL={isRTL}
           />
         )}
+
+        {toast && <div className="cooldown-toast">⏳ {toast}</div>}
 
         {receipt && (
           <Receipt
