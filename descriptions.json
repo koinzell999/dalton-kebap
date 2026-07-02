@@ -1,0 +1,458 @@
+[
+  {
+    "name": "Adana Dürüm",
+    "description": "Acılı Adana kebabının nar gibi kıyma ve kırmızı biberle mangalda pişirildikten sonra ince lavaşa sarıldığı efsanevi dürüm.",
+    "description_en": "Spicy hand-kneaded minced meat seasoned with red pepper flakes, char-grilled and wrapped in thin lavash bread.",
+    "description_ar": "كباب أضنة الحار المفروم يدويًا ومتبّل بالفلفل الأحمر، مشوي على الفحم ملفوف في خبز اللافاش الرقيق."
+  },
+  {
+    "name": "Et Kuşbaşı Dürüm",
+    "description": "Küçük küpler halinde doğranmış taze dana etinin baharatlarla ızgarada pişirilip sıcak lavaşa sarıldığı doyurucu dürüm.",
+    "description_en": "Tender diced beef cooked with aromatic spices and wrapped in warm lavash bread.",
+    "description_ar": "لحم بقر طري مقطّع مكعبات مطبوخ بالبهارات العطرية وملفوف في خبز اللافاش الدافئ."
+  },
+  {
+    "name": "Tavuk Dürüm",
+    "description": "Marine edilmiş tavuk etinin mangalda pişirilip taze sebzeler eşliğinde yumuşak lavaşa sarıldığı hafif ve lezzetli dürüm.",
+    "description_en": "Grilled marinated chicken with fresh vegetables wrapped in soft lavash bread.",
+    "description_ar": "دجاج مرينيد مشوي مع خضار طازجة ملفوف في خبز اللافاش الطري."
+  },
+  {
+    "name": "Döner Dürüm",
+    "description": "Şişten kesilmiş taze döner etinin domates, soğan ve yeşilliklerle birlikte lavaşa sarıldığı sokak lezzetinin klasiği.",
+    "description_en": "Classic street food — freshly shaved döner meat with tomatoes, onions, and herbs wrapped in lavash.",
+    "description_ar": "الطعام الشعبي الكلاسيكي — لحم دونر طازج مع الطماطم والبصل والأعشاب ملفوف في اللافاش."
+  },
+  {
+    "name": "Ciğer Dürüm",
+    "description": "Özel baharatlarla tatlandırılmış ızgara ciğerin lavaşa sarıldığı, Güneydoğu Türkiye'nin en sevilen sokak lezzeti.",
+    "description_en": "Spiced grilled liver wrapped in lavash — a bold and beloved Southeastern Turkish specialty.",
+    "description_ar": "كبدة مشوية متبّلة ملفوفة في اللافاش — تخصص شعبي جريء ومحبوب من جنوب شرق تركيا."
+  },
+  {
+    "name": "Kuşbaşı Dürüm",
+    "description": "Küçük parçalar halinde doğranmış ızgara etin aromatik baharatlarla birlikte sıcak lavaşa sarıldığı doyurucu dürüm.",
+    "description_en": "Bite-sized grilled meat pieces with aromatic spices wrapped in warm lavash bread.",
+    "description_ar": "قطع لحم مشوي صغيرة مع بهارات عطرية ملفوفة في خبز اللافاش الدافئ."
+  },
+  {
+    "name": "Zurna Döner",
+    "description": "Adını zurna çalgısından alan, 70 cm uzunluğundaki bu efsanevi dev dürüm döner etiyle, domates, marul ve özel soslarla hazırlanır.",
+    "description_en": "The legendary extra-long döner wrap — a generous ~70 cm of lavash filled with döner meat, tomatoes, lettuce, and house sauces.",
+    "description_ar": "دُرُم الدونر الطويل الأسطوري — حوالي 70 سم من اللافاش محشو بلحم الدونر والطماطم والخس وصلصات المطعم."
+  },
+  {
+    "name": "Bazuka Döner",
+    "description": "Bol döner etiyle, patates, domates ve özel sosların katman katman doldurulduğu, çok doyurucu büyük boy dürüm.",
+    "description_en": "A bold, generously stuffed döner wrap loaded with meat, fries, tomatoes, and house sauces.",
+    "description_ar": "دُرُم دونر سخي محشو باللحم الوفير والبطاطا والطماطم وصلصات المطعم."
+  },
+  {
+    "name": "Klasik Döner",
+    "description": "İnce dilimlenmiş döner etinin taze domates, soğan ve yeşilliklerle tabakta servis edildiği zamansız klasik.",
+    "description_en": "The timeless classic — thinly sliced döner meat served with fresh tomatoes, onions, and greens.",
+    "description_ar": "الكلاسيكي الخالد — شرائح لحم دونر رقيقة مقدّمة مع الطماطم الطازجة والبصل والخضار."
+  },
+  {
+    "name": "Muska Döner",
+    "description": "Döner etinin üçgen şeklinde katlanmış lavaşa yerleştirildiği, pratik ve şık elle taşınabilir sunum.",
+    "description_en": "Döner meat folded into a triangular lavash pocket — a neat, handheld serving with a satisfying bite.",
+    "description_ar": "لحم الدونر ملفوف في جيب لافاش مثلث الشكل — تقديم أنيق يُمسك باليد مع قضمة مُشبِعة."
+  },
+  {
+    "name": "Pilav Üstü Döner",
+    "description": "Tereyağlı pilavın üzerine servis edilen bol dilim döner eti — sıcak ve doyurucu tam bir öğün.",
+    "description_en": "Generous slices of döner meat served over buttery rice pilaf — a warm and hearty full meal.",
+    "description_ar": "شرائح سخية من لحم الدونر تُقدَّم فوق أرز بالزبدة — وجبة كاملة دافئة ومُشبِعة."
+  },
+  {
+    "name": "Tavuk İskender",
+    "description": "Pide üzerine dizilen ızgara tavuğun üzerine özel domates sosu ve kızgın tereyağı dökülerek kremalı yoğurtla servis edildiği nefis tabak.",
+    "description_en": "Grilled chicken over pide bread, smothered in rich tomato sauce and sizzling butter, served with creamy yogurt.",
+    "description_ar": "دجاج مشوي فوق خبز البيدا، مغطى بصلصة طماطم غنية وزبدة فائرة، يُقدَّم مع زبادي كريمي."
+  },
+  {
+    "name": "İskender Döner",
+    "description": "Bursa'nın efsanevi lezzeti — pide üzerine serilen döner etinin özel domates sosu ve kızgın tereyağıyla buluştuğu, yanında yoğurtla servis edilen muhteşem tabak.",
+    "description_en": "Bursa's legendary dish — döner slices on pide bread topped with tomato sauce and sizzling butter, served alongside creamy yogurt.",
+    "description_ar": "الطبق الأسطوري من بورصة — شرائح الدونر فوق خبز البيدا مع صلصة الطماطم والزبدة الفائرة والزبادي الكريمي."
+  },
+  {
+    "name": "Hatay Usulü Döner",
+    "description": "Portakal suyu ve özel baharatlarla marine edilen döner etinin Hatay'a özgü ateşli ve aromatik sunumuyla hazırlanan kendine has lezzet.",
+    "description_en": "Döner marinated in citrus and spices the Hatay way — bold, aromatic, and uniquely flavorful.",
+    "description_ar": "دونر متبّل بالحمضيات والبهارات على الطريقة الحاطايّة — بنكهة قوية وعطرة ومميزة."
+  },
+  {
+    "name": "Antakya Döner",
+    "description": "Güney Türkiye'nin mutfak başkenti Antakya'nın zengin baharat kültürünü yansıtan, kendine has aromasıyla öne çıkan döner.",
+    "description_en": "Döner prepared in the rich Antakya tradition, seasoned with the distinctive spice blend of southern Turkey.",
+    "description_ar": "دونر مُعدّ على تقاليد أنطاكيا الغنية، متبّل بمزيج البهارات المميز لجنوب تركيا."
+  },
+  {
+    "name": "Antakya Kaşarlı Döner",
+    "description": "Antakya usulü döner etinin üzerine eritilmiş kaşar peyniriyle taçlandırıldığı, çıtır ve sulu eşsiz döner tabağı.",
+    "description_en": "Antakya-style döner crowned with melted kaşar cheese for a golden, irresistible finish.",
+    "description_ar": "دونر بأسلوب أنطاكيا مُتوَّج بجبن القشقوان المذاب للحصول على لمسة ذهبية لا تُقاوَم."
+  },
+  {
+    "name": "Antakya Tavuklu Döner",
+    "description": "Antakya'nın özgün baharat karışımıyla marine edilmiş tavuk etinin geleneksel usulde hazırlandığı lezzetli tavuk döner.",
+    "description_en": "Chicken döner marinated in Antakya's signature spice blend and grilled to perfection.",
+    "description_ar": "دونر دجاج متبّل بمزيج البهارات المميز لأنطاكيا ومشوي على أكمل وجه."
+  },
+  {
+    "name": "Dalton Döner",
+    "description": "Dalton Kebap'ın özel baharatlarla hazırladığı, restoranın imzasını taşıyan kendine özgü döner lezzeti.",
+    "description_en": "Dalton's signature döner — the house specialty prepared with our own secret spice blend.",
+    "description_ar": "دونر دالتون المميز — تخصص المطعم المُعدّ بمزيج بهاراتنا السرية الخاصة."
+  },
+  {
+    "name": "Sultan Lokması",
+    "description": "Özenle seçilmiş döner etinin zengin soslar ve baharatlarla sultana layık bir şekilde servis edildiği nefis tabak.",
+    "description_en": "A royal serving of premium döner meat, richly seasoned and presented in true sultan fashion.",
+    "description_ar": "وجبة ملكية من لحم الدونر الممتاز، متبّل بغنى ومقدّم بأسلوب السلطان الحقيقي."
+  },
+  {
+    "name": "Adana Kebap",
+    "description": "Elle yoğrulan acılı kıymanın geniş şişe dizilip közde pişirildiği, Türk mutfağının şah eseri geleneksel kebap.",
+    "description_en": "Hand-kneaded spiced minced meat on wide skewers, char-grilled over open coals — Turkey's iconic kebab.",
+    "description_ar": "لحم مفروم حار يُعجن يدويًا على شيش عريض ويُشوى فوق الجمر المفتوح — الكباب التركي الأيقوني."
+  },
+  {
+    "name": "Urfa Kebabı",
+    "description": "Kuzu kıyması ve kuyruk yağının kimyon ve yumuşak baharatlarla buluştuğu, Adana'dan daha hafif ama bir o kadar lezzetli Urfa usulü kebap.",
+    "description_en": "A milder cousin of Adana — lamb mince with cumin and warm spices, grilled over charcoal.",
+    "description_ar": "قريب معتدل لكباب أضنة — لحم ضأن مفروم بالكمون وبهارات دافئة، مشوي على الفحم."
+  },
+  {
+    "name": "Viranşehir Kebabı",
+    "description": "Şanlıurfa'nın Viranşehir ilçesine özgü, yöresel baharatlarla hazırlanmış mangalda pişirilmiş kıyma kebabı.",
+    "description_en": "A regional specialty from Viranşehir, Şanlıurfa — finely seasoned minced meat kebab grilled over charcoal.",
+    "description_ar": "تخصص إقليمي من فيرانشهير، شانلي أورفا — كباب لحم مفروم متبّل بالبهارات المحلية ومشوي على الفحم."
+  },
+  {
+    "name": "Siverek Kebabı",
+    "description": "Şanlıurfa'nın Siverek ilçesine özgü, taze kıymanın yöresel baharat geleneğiyle şişe geçirilip mangalda pişirildiği özel kebap.",
+    "description_en": "A Siverek district classic — freshly minced meat seasoned in the local Şanlıurfa tradition, grilled over charcoal.",
+    "description_ar": "كلاسيكية من منطقة سيفرك — لحم مفروم طازج متبّل على تقليد شانلي أورفا، مشوي على الفحم."
+  },
+  {
+    "name": "Haşhaş Kebabı",
+    "description": "Birecik yöresine özgü, Ivesi kuzu etinin sadece tuzla yoğrulup mangalda pişirildiği, sadeliğiyle büyüleyen otantik kebap.",
+    "description_en": "A Birecik specialty — pure Ivesi lamb hand-kneaded with just salt and grilled; the meat's natural flavor speaks for itself.",
+    "description_ar": "تخصص بيريجيك — لحم ضأن خالص يُعجن يدويًا بالملح فقط ويُشوى؛ النكهة الطبيعية للحم تتكلم عن نفسها."
+  },
+  {
+    "name": "Vali Kebabı",
+    "description": "Kuzu kaburga, tavuk ve köftenin bir arada sunulduğu, efsanevi bir vali sofrasından ilham alan zengin karışık kebap tabağı.",
+    "description_en": "A governor's feast — tender lamb ribs, chicken, and meatballs served together in one generous mixed platter.",
+    "description_ar": "وليمة الوالي — ضلوع الضأن الطرية والدجاج والكفتة تُقدَّم معًا في طبق مشكّل سخي."
+  },
+  {
+    "name": "Patlıcan Kebabı",
+    "description": "Közlenmiş patlıcan dilimleriyle kıymanın şişe dönüşümlü dizilip mangalda pişirildiği, duman aromalı geleneksel Anadolu kebabı.",
+    "description_en": "Skewered minced meat alternated with smoky grilled eggplant slices — a classic Anatolian combination.",
+    "description_ar": "لحم مفروم على الشيش بالتناوب مع شرائح باذنجان مشوية دخانية — تركيبة أناضولية كلاسيكية."
+  },
+  {
+    "name": "Domatesli Köfte",
+    "description": "Elle yoğrulan baharatlı köftelerin taze domates ve biber sosunda yavaşça pişirildiği, sıcak ve sarmalayıcı ana yemek.",
+    "description_en": "Homestyle spiced meatballs simmered in a rich fresh tomato and pepper sauce — hearty and deeply satisfying.",
+    "description_ar": "كفتة متبّلة على الطريقة المنزلية مطهوة ببطء في صلصة طماطم وفلفل طازجة غنية — شهية ومُشبِعة."
+  },
+  {
+    "name": "Izgara Köfte",
+    "description": "Elle yoğrulan baharatlı köftelerin mangalda pişirilip közlenmiş biber ve domates eşliğinde servis edildiği klasik tabak.",
+    "description_en": "Hand-formed spiced meatballs char-grilled and served alongside roasted peppers and tomatoes.",
+    "description_ar": "كفتة متبّلة مُشكَّلة يدويًا ومشوية على الفحم مع فلفل وطماطم مشوية."
+  },
+  {
+    "name": "Köfte Porsiyon",
+    "description": "Özenle hazırlanmış ızgara köftenin pilav ve garnitürlerle birlikte tam porsiyon olarak servis edildiği doyurucu tabak.",
+    "description_en": "A full portion of well-seasoned grilled meatballs served with rice pilaf and accompaniments.",
+    "description_ar": "حصة كاملة من الكفتة المشوية المتبّلة جيدًا مع أرز وإضافات جانبية."
+  },
+  {
+    "name": "Satır Köfte",
+    "description": "Etin satırla elle doğranarak yoğrulmasıyla hazırlanan, Güneydoğu Anadolu geleneğini yansıtan rustik ve derin aromalı köfte.",
+    "description_en": "Rustic meatballs made from hand-chopped meat — a bold Southeastern Anatolian tradition with deep, earthy flavor.",
+    "description_ar": "كفتة ريفية مصنوعة من لحم مفروم بالساطور يدويًا — تقليد جريء من جنوب شرق الأناضول بنكهة عميقة وطبيعية."
+  },
+  {
+    "name": "Et Şiş",
+    "description": "Seçme dana etinin özel baharatlarla marine edilip şişlere geçirilerek mangalda pişirildiği, içi sulu dışı çıtır klasik kebap.",
+    "description_en": "Prime marinated beef cubes skewered and char-grilled over open fire — smoky outside, juicy inside.",
+    "description_ar": "مكعبات لحم بقر فاخرة مرينيدة على الشيش ومشوية على نار مفتوحة — دخانية من الخارج وعصيرية من الداخل."
+  },
+  {
+    "name": "Kuşbaşı Şiş",
+    "description": "Küçük parçalar halinde doğranmış etin şişlere dizilerek kömür ateşinde pişirildiği sulu ve lezzetli şiş kebap.",
+    "description_en": "Bite-sized meat pieces threaded on skewers and grilled over charcoal until juicy and tender.",
+    "description_ar": "قطع لحم صغيرة على الشيش ومشوية على الفحم حتى تصبح عصيرية وطرية."
+  },
+  {
+    "name": "Kuşbaşı Servis",
+    "description": "Özenle pişirilmiş kuşbaşı etinin pilav ve közlenmiş sebzelerle birlikte dolu tabakta sunulduğu lezzetli porsiyon.",
+    "description_en": "Tender diced meat served as a full platter with rice pilaf and grilled vegetables.",
+    "description_ar": "لحم مقطّع صغيرًا طري يُقدَّم في طبق كامل مع أرز وخضار مشوية."
+  },
+  {
+    "name": "Tavuk Şiş",
+    "description": "Marine edilmiş tavuk parçalarının şişlere geçirilip mangalda altın renginde pişirildiği, sulu ve aromatik tavuk kebabı.",
+    "description_en": "Marinated chicken pieces threaded on skewers, grilled to juicy golden perfection over charcoal.",
+    "description_ar": "قطع دجاج مرينيدة على الشيش ومشوية حتى الكمال الذهبي العصيري فوق الفحم."
+  },
+  {
+    "name": "Tavuk Kanat",
+    "description": "Özel baharat karışımıyla marine edilmiş tavuk kanatlarının mangalda çıtır çıtır pişirildiği lezzetli tabak.",
+    "description_en": "Chicken wings marinated in a special spice blend and grilled to crispy, smoky perfection.",
+    "description_ar": "أجنحة دجاج متبّلة بمزيج بهارات خاص ومشوية حتى تصبح مقرمشة ودخانية إلى الكمال."
+  },
+  {
+    "name": "Tavuk Pirzola",
+    "description": "Kemikli tavuk pirzolasının özel baharatlarla marine edilip mangalda altın renginde pişirildiği lezzetli ızgara tabağı.",
+    "description_en": "Bone-in chicken chops marinated with special spices and grilled to golden, tender perfection.",
+    "description_ar": "شرائح دجاج بالعظم متبّلة بالبهارات الخاصة ومشوية حتى تصبح ذهبية وطرية إلى الكمال."
+  },
+  {
+    "name": "Tavuklu Karışık Izgara",
+    "description": "Tavuk şiş, tavuk kanat ve tavuk pirzolayı bir arada sunan, tavuk severler için tasarlanmış ideal karışık ızgara tabağı.",
+    "description_en": "The ultimate chicken platter — shish, wings, and chops from the grill, all on one plate.",
+    "description_ar": "طبق الدجاج الأمثل — شيش وأجنحة وشرائح من الشواية، كلها في طبق واحد."
+  },
+  {
+    "name": "Karışık Izgara",
+    "description": "Köfte, tavuk şiş ve et şişin bir arada sunulduğu, çeşitli mangal lezzetlerini tek bir tabakta birleştiren kapsamlı ızgara tabağı.",
+    "description_en": "A satisfying mixed grill plate combining meatballs, chicken shish, and beef skewers.",
+    "description_ar": "طبق مشويات مشكّلة يجمع بين الكفتة وشيش الدجاج وشيش اللحم."
+  },
+  {
+    "name": "Etli Karışık Izgara",
+    "description": "Adana kebabı, et şiş ve kuşbaşı şişin bir arada sunulduğu, et tutkunları için hazırlanmış zengin ızgara tabağı.",
+    "description_en": "A meat lover's dream — Adana kebab, beef shish, and diced meat skewers all on one platter.",
+    "description_ar": "حلم محبي اللحوم — كباب أضنة وشيش اللحم وشيش اللحم المقطّع في طبق واحد."
+  },
+  {
+    "name": "Ciğer Kebabı",
+    "description": "Özel baharatlarla tatlandırılmış ciğer parçalarının şişe geçirilip mangalda pişirildiği, Güneydoğu Anadolu'nun vazgeçilmez lezzeti.",
+    "description_en": "Skewered and char-grilled seasoned liver — a bold and beloved Southeastern Anatolian classic.",
+    "description_ar": "كبدة متبّلة على الشيش ومشوية على الفحم — كلاسيكية جريئة ومحبوبة من جنوب شرق الأناضول."
+  },
+  {
+    "name": "Ciğer Servis",
+    "description": "Izgara ciğerin ince soğan halkalarıyla ve taze maydanozla süslenerek tabakta eksiksiz servis edildiği doyurucu porsiyon.",
+    "description_en": "Grilled liver served as a full plate with thinly sliced onions, fresh parsley, and flatbread.",
+    "description_ar": "كبدة مشوية مقدّمة كطبق كامل مع حلقات البصل الرقيقة والبقدونس الطازج وخبز الفطير."
+  },
+  {
+    "name": "1 Kg Adana",
+    "description": "Mangalda ustalıkla pişirilmiş imza Adana kebabının kilogramlık dev porsiyonu — büyük sofralar ve etkinlikler için ideal.",
+    "description_en": "A full kilogram of our signature Adana kebab — ideal for sharing at large tables or festive gatherings.",
+    "description_ar": "كيلوجرام كامل من كباب أضنة المميز — مثالي للمشاركة في الطاولات الكبيرة والتجمعات الاحتفالية."
+  },
+  {
+    "name": "Tavuk Sarma Şiş",
+    "description": "Tavuk etinin aromatik baharatlarla şişe sarılarak mangalda altın renginde ve sulu pişirildiği özel tavuk kebabı.",
+    "description_en": "Chicken wrapped around skewers with aromatic spices and grilled until golden and juicy.",
+    "description_ar": "دجاج ملفوف حول الشيش مع بهارات عطرية ومشوي حتى يصبح ذهبيًا وعصيريًا."
+  },
+  {
+    "name": "Karışık Şiş",
+    "description": "Et şiş ve tavuk şişin bir arada sunulduğu, her iki lezzetin de tadını çıkarmak isteyenler için mükemmel seçim.",
+    "description_en": "The best of both worlds — beef shish and chicken shish served together on one platter.",
+    "description_ar": "أفضل ما في كلا العالمين — شيش اللحم وشيش الدجاج يُقدَّمان معًا في طبق واحد."
+  },
+  {
+    "name": "Karışık Izgara Tabak",
+    "description": "Çeşitli ızgara etlerin, közlenmiş sebzeler ve garnitürlerle zenginleştirilerek sunulduğu sofra şöleni tabağı.",
+    "description_en": "A feast on a plate — assorted grilled meats with roasted vegetables and accompaniments in one generous serving.",
+    "description_ar": "وليمة على طبق — لحوم مشوية متنوعة مع خضار محمصة ومرافقات في تقديم سخي واحد."
+  },
+  {
+    "name": "Mercimek Çorbası",
+    "description": "Kırmızı mercimeğin havuç ve soğanla kaynatılıp pürüzsüz hale getirildikten sonra kimyon ve tereyağıyla servis edildiği, Türk mutfağının vazgeçilmez çorbası.",
+    "description_en": "Smooth and warming red lentil soup — Turkey's most beloved comfort soup finished with cumin and butter.",
+    "description_ar": "شوربة عدس أحمر ناعمة ودافئة — الشوربة التركية الأكثر حبًا المنتهية بالكمون والزبدة."
+  },
+  {
+    "name": "Ezogelin Çorbası",
+    "description": "Kırmızı mercimek, bulgur ve pirincin nane ve kırmızı biberle tatlandırılarak hazırlandığı, hem besleyici hem ısıtıcı yöresel çorba.",
+    "description_en": "Heartier than lentil soup — red lentils, bulgur, and rice with dried mint and red pepper flakes.",
+    "description_ar": "أكثر إشباعًا من شوربة العدس — عدس أحمر وبرغل وأرز مع النعناع المجفف وفلفل أحمر."
+  },
+  {
+    "name": "Ekmek Arası Köfte",
+    "description": "Izgara köftenin taze domates ve yeşilliklerle birlikte ekmeğe sıkıştırıldığı, Türk mutfağının sevilen sandviç klasiği.",
+    "description_en": "Grilled meatballs tucked into fresh bread with tomatoes and herbs — a classic Turkish street sandwich.",
+    "description_ar": "كفتة مشوية في خبز طازج مع الطماطم والأعشاب — ساندويتش شعبي تركي كلاسيكي."
+  },
+  {
+    "name": "Ekmek Arası Döner",
+    "description": "Şişten kesilmiş taze döner etinin taze sebzeler ve soslarla birlikte ekmeğe yerleştirildiği, hızlı ve doyurucu sandviç.",
+    "description_en": "Freshly shaved döner meat with vegetables and sauces stuffed into bread — quick, satisfying, and classic.",
+    "description_ar": "لحم دونر طازج مع الخضار والصلصات محشو في خبز — سريع ومُشبِع وكلاسيكي."
+  },
+  {
+    "name": "Beyti Sarma",
+    "description": "Baharatlı kıymanın lavaşa sarılarak ızgarada pişirilip özel domates sosu ve soğuk yoğurtla servis edildiği, İstanbul'un ünlü kebabı.",
+    "description_en": "Istanbul's famous kebab — spiced ground meat rolled in lavash, grilled, then topped with tomato sauce and yogurt.",
+    "description_ar": "كباب إسطنبول الشهير — لحم مفروم متبّل ملفوف في اللافاش ومشوي ثم مغطى بصلصة الطماطم والزبادي."
+  },
+  {
+    "name": "Kaşarlı Beyti Kebabı",
+    "description": "Beyti kebabının tüm lezzetiyle eritilmiş kaşar peynirinin altın sarısı katmanıyla taçlandırıldığı zenginleştirilmiş versiyonu.",
+    "description_en": "All the glory of Beyti kebab crowned with a layer of melted kaşar cheese for an extra indulgent finish.",
+    "description_ar": "كل مجد كباب بيتي مُتوَّج بطبقة من جبن القشقوان المذاب للحصول على لمسة نهائية استثنائية."
+  },
+  {
+    "name": "Tavuk Tantuni Lavaş",
+    "description": "Sac üzerinde özel baharatlarla kavrulan tavuk etinin ince lavaşa sarıldığı, Mersin mutfağının efsanevi sokak lezzeti.",
+    "description_en": "Mersin-style spiced chicken stir-fried on a sac and wrapped in thin lavash — street food at its finest.",
+    "description_ar": "دجاج متبّل بأسلوب مرسين مقلي على الصاج وملفوف في لافاش رقيق — طعام الشارع في أبهى حلّه."
+  },
+  {
+    "name": "Tavuk Tantuni Somun",
+    "description": "Sac üzerinde kavrulan baharatlı tavuk etinin yumuşak somun ekmeğine doldurulduğu doyurucu sandviç.",
+    "description_en": "Tantuni-spiced chicken cooked on a sac and served in a soft white bread roll.",
+    "description_ar": "دجاج تانتوني متبّل مطبوخ على الصاج ومقدّم في خبز أبيض طري."
+  },
+  {
+    "name": "Tavuk Tantuni Yoğurtlu",
+    "description": "Sac'da pişirilmiş tavuk tantuninin sarılıp dilimlendiğinde üzerine sarımsaklı yoğurt ve kızgın tereyağı dökülen zengin sunum.",
+    "description_en": "Tantuni chicken rolls sliced and drizzled with garlicky yogurt and sizzling butter — rich and irresistible.",
+    "description_ar": "لفائف تانتوني الدجاج مقطّعة ومسكوبة بزبادي بالثوم وزبدة فائرة — غنية ولا تُقاوَم."
+  },
+  {
+    "name": "Et Tantuni Lavaş",
+    "description": "İnce dilimlenmiş dana etinin sac üzerinde baharatlarla kavurularak lavaşa sarıldığı, Mersin'in ikonik sokak lezzeti.",
+    "description_en": "Thinly sliced beef stir-fried with spices on a sac and wrapped in lavash — Mersin's iconic street food.",
+    "description_ar": "لحم بقر مقطّع رقيقًا مقلي بالبهارات على الصاج وملفوف في لافاش — طعام الشارع الأيقوني من مرسين."
+  },
+  {
+    "name": "Et Tantuni Somun",
+    "description": "Sac üzerinde pişirilmiş baharatlı dana etinin yumuşak somun ekmeğine yerleştirildiği, pratik ve doyurucu seçenek.",
+    "description_en": "Spiced beef tantuni cooked on a sac and served in a soft bread roll — quick, flavorful, and filling.",
+    "description_ar": "تانتوني لحم بقر متبّل مطبوخ على الصاج ومقدّم في خبز طري — سريع ولذيذ ومُشبِع."
+  },
+  {
+    "name": "Et Tantuni Yoğurtlu",
+    "description": "Tantuni etinin sarılıp dilimlenmesiyle sarımsaklı yoğurt ve kızgın tereyağı eşliğinde sunulan, sos dolu zengin tabak.",
+    "description_en": "Beef tantuni rolls topped with garlicky yogurt and sizzling butter — a satisfying, sauce-rich platter.",
+    "description_ar": "لفائف تانتوني اللحم مع زبادي بالثوم وزبدة فائرة — طبق غني بالصلصة ومُرضٍ."
+  },
+  {
+    "name": "Biftek Tantuni Lavaş",
+    "description": "Biftek kalitesindeki etin tantuni baharatlarıyla sac üzerinde kavurulup lavaşa sarıldığı, sokak yemeğinin premium versiyonu.",
+    "description_en": "Premium steak-quality beef stir-fried with tantuni spices on a sac and wrapped in lavash — an elevated street food experience.",
+    "description_ar": "لحم بقر بجودة الستيك مقلي ببهارات التانتوني على الصاج وملفوف في لافاش — تجربة طعام شارع راقية."
+  },
+  {
+    "name": "Biftek Tantuni Somun",
+    "description": "Sac üzerinde pişirilmiş biftek kalitesindeki tantuninin yumuşak somun ekmeğiyle buluştuğu lezzetli ve doyurucu seçenek.",
+    "description_en": "Premium steak tantuni cooked on a sac and served in a soft bread roll — hearty, flavorful, and satisfying.",
+    "description_ar": "تانتوني استيك ممتاز مطبوخ على الصاج ومقدّم في خبز طري — شهي ولذيذ ومُشبِع."
+  },
+  {
+    "name": "Biftek Tantuni Yoğurtlu",
+    "description": "Biftek tantunisinin sarılıp dilimlendiğinde üzerine sarımsaklı yoğurt ve kızgın tereyağı dökülerek sunulan özel tabak.",
+    "description_en": "Premium steak tantuni rolls topped with garlicky yogurt and sizzling butter — indulgent and unforgettable.",
+    "description_ar": "لفائف تانتوني الستيك المميزة مع زبادي بالثوم وزبدة فائرة — استثنائية ولا تُنسى."
+  },
+  {
+    "name": "Ankara Özel Dürüm",
+    "description": "Özel sos ve taze malzemelerle zenginleştirilen, Ankara usulüne göre hazırlanmış tam ve doyurucu menü dürümü.",
+    "description_en": "Ankara-style special wrap with house sauces and fresh ingredients — a complete and satisfying meal in one roll.",
+    "description_ar": "دُرُم خاص بأسلوب أنقرة مع صلصات المطعم ومكونات طازجة — وجبة كاملة ومُشبِعة في لفّة واحدة."
+  },
+  {
+    "name": "Ankara Özel Kaşarlı Dürüm",
+    "description": "Ankara usulü özel dürümün eritilmiş kaşar peyniriyle taçlandırıldığı, daha zengin ve dolgun versiyonu.",
+    "description_en": "The Ankara special wrap elevated with melted kaşar cheese — extra satisfying and full of flavor.",
+    "description_ar": "الدُّرُم الخاص بأسلوب أنقرة مُرقَّى بجبن القشقوان المذاب — مُشبِع بشكل إضافي ومليء بالنكهة."
+  },
+  {
+    "name": "Ciğer Dürüm + Ayran",
+    "description": "Baharatlı ciğer dürümünün serinletici soğuk ayranla birlikte sunulduğu, mükemmel uyumu yakalayan komple menü.",
+    "description_en": "Spiced liver wrap paired with a chilled glass of homemade ayran — the classic Southeastern combo.",
+    "description_ar": "دُرُم الكبدة المتبّلة مع كأس بارد من الأيران — التوليفة الكلاسيكية من جنوب شرق تركيا."
+  },
+  {
+    "name": "Kuşbaşı Dürüm + Ayran",
+    "description": "Lezzetli kuşbaşı dürümünün soğuk ve ferahlatıcı ev yapımı ayranla birlikte sunulduğu doyurucu menü.",
+    "description_en": "Tender diced meat wrap served with a chilled glass of homemade ayran — simple, satisfying, and complete.",
+    "description_ar": "دُرُم اللحم المقطّع الطري مع كأس بارد من الأيران — بسيط ومُشبِع وكامل."
+  },
+  {
+    "name": "Tavuk Dürüm + Ayran",
+    "description": "Izgara tavuk dürümünün serinletici soğuk ayranla buluştuğu, hafif ve pratik komple menü seçeneği.",
+    "description_en": "Grilled chicken wrap paired with a chilled glass of homemade ayran — light, refreshing, and complete.",
+    "description_ar": "دُرُم الدجاج المشوي مع كأس بارد من الأيران — خفيف ومنعش وكامل."
+  },
+  {
+    "name": "Adana Kebap (Kg)",
+    "description": "İmza Adana kebabımızın kilogram bazında sunulan büyük porsiyonu — büyük sofralar ve özel etkinlikler için ideal.",
+    "description_en": "Our signature Adana kebab sold by the kilogram — perfect for large tables and group celebrations.",
+    "description_ar": "كباب أضنة المميز يُباع بالكيلوجرام — مثالي للطاولات الكبيرة واحتفالات المجموعات."
+  },
+  {
+    "name": "Tavuk Karışık",
+    "description": "Çeşitli ızgara tavuk çeşitlerinin kilogram bazında sunulduğu, büyük sofra ve organizasyonlar için mükemmel seçenek.",
+    "description_en": "A mixed selection of grilled chicken varieties sold by the kilogram — great for gatherings and events.",
+    "description_ar": "مجموعة مختارة من أصناف الدجاج المشوي تُباع بالكيلوجرام — رائعة للتجمعات والفعاليات."
+  },
+  {
+    "name": "Tavuk Pirzola",
+    "description": "Marine edilmiş kemikli tavuk pirzolasının kilogram bazında satıldığı, büyük sofralarda herkesi memnun eden seçenek.",
+    "description_en": "Marinated bone-in chicken chops sold by the kilogram — a crowd-pleaser for any occasion.",
+    "description_ar": "شرائح دجاج بالعظم مرينيدة تُباع بالكيلوجرام — تُرضي الجميع في أي مناسبة."
+  },
+  {
+    "name": "Tavuk Kanat",
+    "description": "Özel baharat karışımıyla marine edilmiş çıtır tavuk kanatlarının kilogram bazında satılan büyük porsiyon versiyonu.",
+    "description_en": "Crispy spiced chicken wings sold by the kilogram — irresistible for large groups and parties.",
+    "description_ar": "أجنحة دجاج مقرمشة متبّلة تُباع بالكيلوجرام — لا تُقاوَم للمجموعات الكبيرة والحفلات."
+  },
+  {
+    "name": "Tavuk Sarma",
+    "description": "Aromatik baharatlarla şişe sarılmış tavuk etinin kilogram bazında sunulduğu, etkinlik ve büyük sofralar için ideal seçenek.",
+    "description_en": "Spice-wrapped chicken skewers sold by the kilogram — ideal for events and large gatherings.",
+    "description_ar": "شيش الدجاج الملفوف بالبهارات يُباع بالكيلوجرام — مثالي للفعاليات والتجمعات الكبيرة."
+  },
+  {
+    "name": "Kuzu Kuş Başı",
+    "description": "Seçme kuzu etinin küçük küpler halinde özenle hazırlanıp kilogram bazında sunulduğu yumuşak ve lezzetli premium et seçeneği.",
+    "description_en": "Premium diced lamb sold by the kilogram — tender, flavorful, and perfect for large gatherings.",
+    "description_ar": "لحم ضأن مقطّع مكعبات ممتاز يُباع بالكيلوجرام — طري ولذيذ، مثالي للتجمعات الكبيرة."
+  },
+  {
+    "name": "Küçük Ayran Bardak",
+    "description": "Taze yoğurttan yapılan, hafif tuzlu ve ferahlatıcı geleneksel Türk içeceğinin küçük boy bardakta sunulan versiyonu.",
+    "description_en": "A small glass of chilled, lightly salted yogurt drink — the perfect refreshing companion to any kebab.",
+    "description_ar": "كأس صغير من مشروب الأيران الزبادي البارد والمملّح قليلًا — الرفيق المنعش المثالي لأي كباب."
+  },
+  {
+    "name": "Büyük Ayran Bardak",
+    "description": "Taze yoğurttan yapılan geleneksel Türk içeceğinin büyük boy bardakta servis edilen serinletici versiyonu.",
+    "description_en": "A large chilled glass of lightly salted yogurt drink — refreshing, thirst-quenching, and perfectly Turkish.",
+    "description_ar": "كأس كبير بارد من مشروب الزبادي المملّح قليلًا — منعش وروٍّ للعطش وتركي بامتياز."
+  },
+  {
+    "name": "Su Şişe",
+    "description": "Soğuk ve saf içme suyu şişesi.",
+    "description_en": "Chilled bottled still water.",
+    "description_ar": "زجاجة ماء شرب بارد نقي."
+  },
+  {
+    "name": "Sade Soda",
+    "description": "Ferahlatıcı ve köpüklü sade maden sodası.",
+    "description_en": "Refreshing plain sparkling soda water.",
+    "description_ar": "ماء صودا فوّار منعش."
+  },
+  {
+    "name": "Meyveli Soda",
+    "description": "Meyve aromasıyla zenginleştirilen köpüklü ve ferahlatıcı soda — yemeğe renk katan eğlenceli bir içecek.",
+    "description_en": "Refreshing sparkling soda with a fruit flavor — a fizzy and fun drink to complement your meal.",
+    "description_ar": "صودا فوّارة منعشة بنكهة الفاكهة — مشروب مبهج وممتع يُكمل وجبتك."
+  }
+]

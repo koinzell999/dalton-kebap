@@ -118,6 +118,56 @@ const menuData = [
       { id: "8-2", name: "Karışık Izgara Tabak",  price: "", description: "", imageUrl: "" },
     ],
   },
+  {
+    title: "TAVUK TANTUNİLER",
+    order: 9,
+    items: [
+      { id: "9-1", name: "Tavuk Tantuni Lavaş",     price: "", description: "", imageUrl: "" },
+      { id: "9-2", name: "Tavuk Tantuni Somun",     price: "", description: "", imageUrl: "" },
+      { id: "9-3", name: "Tavuk Tantuni Yoğurtlu",  price: "", description: "", imageUrl: "" },
+    ],
+  },
+  {
+    title: "ET TANTUNİLER",
+    order: 10,
+    items: [
+      { id: "10-1", name: "Et Tantuni Lavaş",     price: "", description: "", imageUrl: "" },
+      { id: "10-2", name: "Et Tantuni Somun",     price: "", description: "", imageUrl: "" },
+      { id: "10-3", name: "Et Tantuni Yoğurtlu",  price: "", description: "", imageUrl: "" },
+    ],
+  },
+  {
+    title: "BİFTEK TANTUNİLER",
+    order: 11,
+    items: [
+      { id: "11-1", name: "Biftek Tantuni Lavaş",     price: "", description: "", imageUrl: "" },
+      { id: "11-2", name: "Biftek Tantuni Somun",     price: "", description: "", imageUrl: "" },
+      { id: "11-3", name: "Biftek Tantuni Yoğurtlu",  price: "", description: "", imageUrl: "" },
+    ],
+  },
+  {
+    title: "MENÜLÜ DÜRÜMLER",
+    order: 12,
+    items: [
+      { id: "12-1", name: "Ankara Özel Dürüm",            price: "", description: "", imageUrl: "" },
+      { id: "12-2", name: "Ankara Özel Kaşarlı Dürüm",    price: "", description: "", imageUrl: "" },
+      { id: "12-3", name: "Ciğer Dürüm + Ayran",          price: "", description: "", imageUrl: "" },
+      { id: "12-4", name: "Kuşbaşı Dürüm + Ayran",        price: "", description: "", imageUrl: "" },
+      { id: "12-5", name: "Tavuk Dürüm + Ayran",          price: "", description: "", imageUrl: "" },
+    ],
+  },
+  {
+    title: "KG'LİK ÜRÜNLER",
+    order: 13,
+    items: [
+      { id: "13-1", name: "Adana Kebap (Kg)",  price: "", description: "", imageUrl: "" },
+      { id: "13-2", name: "Tavuk Karışık",     price: "", description: "", imageUrl: "" },
+      { id: "13-3", name: "Tavuk Pirzola",     price: "", description: "", imageUrl: "" },
+      { id: "13-4", name: "Tavuk Kanat",       price: "", description: "", imageUrl: "" },
+      { id: "13-5", name: "Tavuk Sarma",       price: "", description: "", imageUrl: "" },
+      { id: "13-6", name: "Kuzu Kuş Başı",     price: "", description: "", imageUrl: "" },
+    ],
+  },
 ];
 
 async function seed() {
